@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AR marcador con A-Frame + AR.js</title>
+  <!-- A-Frame (motor 3D sobre WebGL) -->
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <!-- AR.js para A-Frame (detección de marcador) -->
+  <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.0/aframe/build/aframe-ar.js"></script>
+  <!-- Si raw.githack te falla, usa este en su lugar: -->
+  <!-- <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.js"></script> -->
+  <style>
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans"; }
+    .hint { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); background: rgba(0,0,0,.6); color: #fff; padding: 8px 12px; border-radius: 10px; font-size: 14px; z-index: 9; }
+  </style>
+</head>
+<body>
+  <div class="hint">Apunta la cámara al marcador "Hiro". Toca un cubo para ver el cilindro amarillo.</div>
+
+  <a-scene
+    embedded
+    vr-mode-ui="enabled: false"
+    renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true;"
+    arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false;"
+  >
+    <!-- Luces -->
+    <a-entity light="type: ambient; intensity: 0.75"></a-entity>
+    <a-entity light="type: directional; intensity: 0.9" position="1 1 0"></a-entity>
+
+    <!-- Cámara + cursor/raycaster para clicks/taps -->
+    <a-entity camera>
+      <a-entity cursor="rayOrigin: mouse" raycaster="objects: .interactable"></a-entity>
+    </a-entity>
+
+    <!-- Marcador Hiro -->
+    <a-marker preset="hiro" id="mk">
+      <!-- TRES CUBOS (clickables) -->
+      <a-box id="cube1" class="interactable"
+             position="-1.2 0.5 0" depth="1" height="1" width="1"
+             material="color: #E53935; opacity: 0.9; metalness: 0.2; roughness: 0.6">
+      </a-box>
+
+      <a-box id="cube2" class="interactable"
+             position="0 0.5 0" depth="1" height="1" width="1"
+             material="color: #9E9E9E; opacity: 0.9; metalness: 0.2; roughness: 0.6">
+      </a-box>
+
+      <a-box id="cube3" class="interactable"
+             position="1.2 0.5 0" depth="1" height="1" width="1"
+             material="color: #1E88E5; opacity: 0.9; metalness: 0.2; roughness: 0.6">
+      </a-box>
+
+      <!-- CILINDRO AMARILLO (inicialmente oculto) -->
+      <a-cylinder id="cylYellow"
+                  position="0 0.6 0" radius="0.35" height="1.2"
+                  material="color: #FDD835; metalness: 0.2; roughness: 0.5"
+                  visible="false">
+      </a-cylinder>
+    </a-marker>
+
+  </a-scene>
+
+  <script>
+    // Utilidad: ocultar los cubos
+    function hideCubes() {
+      ['cube1','cube2','cube3'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.setAttribute('visible', 'false');
+      });
+    }
+
+    // Pequeño efecto al tocar
+    function pressFx(el) {
+      if (!el) return;
+      el.setAttribute('animation__press', {
+        property: 'scale', to: '0.94 0.94 0.94', dur: 90, dir: 'alternate', loop: 1
+      });
+    }
+
+    // Conexión de eventos
+    window.addEventListener('DOMContentLoaded', () => {
+      const cyl = document.getElementById('cylYellow');
+
+      ['cube1','cube2','cube3'].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        const onPick = () => {
+          pressFx(el);
+          hideCubes();
+          cyl.setAttribute('visible', 'true');
+          // opcional: animación de entrada del cilindro
+          cyl.setAttribute('animation__in', {
+            property: 'scale', from: '0 0 0', to: '1 1 1', dur: 200, easing: 'easeOutQuad'
+          });
+          console.log('[UI] Seleccionado', id, '→ mostrar cilindro');
+        };
+
+        el.addEventListener('click', onPick);
+        el.addEventListener('touchstart', onPick, {passive:true});
+        el.addEventListener('mouseenter', () => el.setAttribute('scale','1.05 1.05 1.05'));
+        el.addEventListener('mouseleave', () => el.setAttribute('scale','1 1 1'));
+      });
+    });
+  </script>
+</body>
+</html>
