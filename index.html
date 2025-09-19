@@ -3,105 +3,215 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AR marcador con A-Frame + AR.js</title>
+  <title>AR marcador — Ruleta con shader flat</title>
+
   <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <!-- AR.js -->
-  <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.0/aframe/build/aframe-ar.js"></script>
-  <!-- <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.js"></script> -->
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.js"></script>
+
   <style>
-    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans"; }
-    .hint { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); background: rgba(0,0,0,.6); color: #fff; padding: 8px 12px; border-radius: 10px; font-size: 14px; z-index: 9; }
+    body { margin:0; font-family: system-ui, sans-serif; }
+    .hint { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); background: rgba(0,0,0,.65); color:#fff; padding:8px 12px; border-radius:10px; font-size:14px; z-index:9; }
+
+    /* Botón HUD */
+    #btnBack {
+      position: fixed; top:12px; left:12px;
+      background:#212121; color:#fff; padding:10px 16px; border-radius:8px;
+      font-size:14px; cursor:pointer; z-index:99; display:none; border:0;
+    }
+    #btnBack:active { transform: scale(0.98); }
+
+    /* Resultado HUD */
+    #resultHUD {
+      position: fixed; top:12px; right:12px;
+      background: rgba(33,33,33,.85); color:#fff; padding:10px 14px; border-radius:8px;
+      font-size:16px; z-index:99; display:none;
+    }
   </style>
 </head>
 <body>
-  <div class="hint">Apunta la cámara al marcador "Hiro". Toca un cubo para cargar el modelo GLB.</div>
+  <div class="hint">Rojo: ruleta (click = girar), Gris: tarjeta GLB, Azul: cilindro.</div>
+  <button id="btnBack">Volver</button>
+  <div id="resultHUD"></div>
 
-  <a-scene
-    embedded
-    vr-mode-ui="enabled: false"
-    renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true;"
-    arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false;"
-  >
-    <!-- Luces -->
-    <a-entity light="type: ambient; intensity: 0.75"></a-entity>
-    <a-entity light="type: directional; intensity: 0.9" position="1 1 0"></a-entity>
+  <a-scene embedded vr-mode-ui="enabled:false" arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false">
+    <!-- Luces (opcional, para otros objetos) -->
+    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+    <a-entity light="type: directional; intensity: 1.2" position="1 1 0"></a-entity>
 
-    <!-- Cámara -->
     <a-entity camera>
       <a-entity cursor="rayOrigin: mouse" raycaster="objects: .interactable"></a-entity>
     </a-entity>
 
-    <!-- Marcador Hiro -->
     <a-marker preset="hiro" id="mk">
-      <!-- Cubos -->
-      <a-box id="cube1" class="interactable" position="-1.2 0.5 0" depth="1" height="1" width="1"
-             material="color: #E53935; opacity: 0.9; metalness: 0.2; roughness: 0.6"></a-box>
 
-      <a-box id="cube2" class="interactable" position="0 0.5 0" depth="1" height="1" width="1"
-             material="color: #9E9E9E; opacity: 0.9; metalness: 0.2; roughness: 0.6"></a-box>
+      <!-- ====== MENÚ (3 cubos) ====== -->
+      <a-box id="cubeRed"  class="interactable" position="-1.2 0.5 0" depth="1" height="1" width="1"
+             material="color:#E53935; opacity:0.95;"></a-box>
+      <a-box id="cubeGray" class="interactable" position="0 0.5 0" depth="1" height="1" width="1"
+             material="color:#9E9E9E; opacity:0.95;"></a-box>
+      <a-box id="cubeBlue" class="interactable" position="1.2 0.5 0" depth="1" height="1" width="1"
+             material="color:#1E88E5; opacity:0.95;"></a-box>
 
-      <a-box id="cube3" class="interactable" position="1.2 0.5 0" depth="1" height="1" width="1"
-             material="color: #1E88E5; opacity: 0.9; metalness: 0.2; roughness: 0.6"></a-box>
+      <!-- ====== RULETA ====== -->
+      <a-entity id="rouletteGroup" position="0 0.6 0" visible="false" class="interactable">
 
-      <!-- Modelo GLB -->
-      <a-entity id="myGLB"
-                gltf-model="url(./ACCION_PRUEBA_ESCANEABLE.glb)"
-                position="0 0 0"
-                rotation="0 0 0"
-                scale="0 0 0"
-                visible="false"
-                animation-mixer
-                animation__rotate="property: rotation; to: 0 360 0; loop: true; dur: 4000; easing: linear">
+        <!-- Parte que GIRA (spinner) -->
+        <a-entity id="rouletteSpinner">
+          <!-- Disco con shader flat (NO depende de la luz) -->
+          <a-cylinder radius="0.95" height="0.05" rotation="90 0 0"
+                      material="shader: flat; src: #rouletteCanvas; side: double"></a-cylinder>
+
+          <!-- Aro dorado -->
+          <a-torus radius="1.05" radius-tubular="0.04"
+                   material="color:#C8A853; metalness:0.9; roughness:0.2"></a-torus>
+
+          <!-- Hub central -->
+          <a-cylinder radius="0.12" height="0.06" position="0 0.05 0" rotation="90 0 0"
+                      material="color:#BDBDBD; metalness:0.7; roughness:0.2"></a-cylinder>
+        </a-entity>
+
+        <!-- Aguja fija -->
+        <a-entity id="rouletteNeedle">
+          <a-cone height="0.16" radius-bottom="0.06" radius-top="0.0"
+                  position="0 1.06 0.055" rotation="-90 0 0"
+                  material="color:#FF5252;"></a-cone>
+          <a-cylinder radius="0.025" height="0.08"
+                      position="0 0.98 0.04" rotation="-90 0 0"
+                      material="color:#263238;"></a-cylinder>
+        </a-entity>
       </a-entity>
+
+      <!-- ====== TARJETA GLB ====== -->
+      <a-entity id="cardGLB" gltf-model="url(./ACCION_PRUEBA_ESCANEABLE.glb)"
+                position="0 0 0" scale="0 0 0" visible="false"
+                animation-mixer
+                animation__rotate="property: rotation; to: 0 360 0; loop:true; dur:4000; easing:linear"></a-entity>
+
+      <!-- ====== CILINDRO ====== -->
+      <a-cylinder id="blueCylinder" position="0 0.6 0" radius="0.35" height="1.2"
+                  material="color:#FDD835;" visible="false" scale="0 0 0"></a-cylinder>
+
     </a-marker>
 
+    <!-- Canvas de la ruleta -->
+    <a-assets>
+      <canvas id="rouletteCanvas" width="1024" height="1024"></canvas>
+    </a-assets>
   </a-scene>
 
   <script>
-    function hideCubes() {
-      ['cube1','cube2','cube3'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.setAttribute('visible', 'false');
+    // ====== Dibuja la ruleta ======
+    function drawRoulette() {
+      const cvs = document.getElementById('rouletteCanvas');
+      const ctx = cvs.getContext('2d');
+      const W = cvs.width, H = cvs.height;
+      const cx = W/2, cy = H/2, R = 480;
+
+      const colors = ['#FFCDD2','#C8E6C9','#BBDEFB','#FFF9C4','#D1C4E9'];
+
+      ctx.clearRect(0,0,W,H);
+      ctx.save(); ctx.translate(cx, cy);
+
+      for (let i=0; i<5; i++) {
+        const a0 = (i*72) * Math.PI/180;
+        const a1 = ((i+1)*72) * Math.PI/180;
+
+        ctx.fillStyle = colors[i];
+        ctx.beginPath(); ctx.moveTo(0,0);
+        ctx.arc(0,0,R, a0, a1);
+        ctx.closePath(); ctx.fill();
+
+        ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0,0,R, a0, a1); ctx.stroke();
+
+        ctx.fillStyle = '#212121';
+        ctx.font = 'bold 120px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        const ang = (i*72+36) * Math.PI/180;
+        ctx.fillText(String(i+1), (R*0.6)*Math.cos(ang), (R*0.6)*Math.sin(ang));
+      }
+
+      ctx.restore();
+    }
+    drawRoulette();
+
+    // ====== Helpers ======
+    function hideMenuCubes(){['cubeRed','cubeGray','cubeBlue'].forEach(id=>document.getElementById(id).setAttribute('visible','false'));}
+    function showMenuCubes(){['cubeRed','cubeGray','cubeBlue'].forEach(id=>document.getElementById(id).setAttribute('visible','true'));}
+    function hideAllContent(){
+      const spinner=document.getElementById('rouletteSpinner');
+      ['rouletteGroup','cardGLB','blueCylinder'].forEach(id=>{
+        const el=document.getElementById(id);
+        el.setAttribute('visible','false');
+        el.setAttribute('scale','0 0 0');
       });
+      if (spinner) spinner.removeAttribute('animation__spin');
+      document.getElementById('resultHUD').style.display='none';
     }
 
-    function pressFx(el) {
-      if (!el) return;
-      el.setAttribute('animation__press', {
-        property: 'scale', to: '0.94 0.94 0.94', dur: 90, dir: 'alternate', loop: 1
+    // ====== Spin ======
+    function spinRoulette(){
+      const spinner=document.getElementById('rouletteSpinner');
+      const hud=document.getElementById('resultHUD');
+      const spins=3+Math.random()*1.5;
+      const targetRotation=360*spins+Math.floor(Math.random()*360);
+
+      spinner.setAttribute('animation__spin',{
+        property:'rotation', to:`0 0 ${targetRotation}`, dur:3200, easing:'easeOutCubic'
       });
+
+      hud.style.display='none';
+      setTimeout(()=>{
+        const angle=(targetRotation%360+360)%360;
+        const sector=Math.floor((angle/72))%5;
+        const finalNumber=(5-sector+1);
+        hud.textContent='Te tocó: '+finalNumber;
+        hud.style.display='block';
+      },3200);
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      const model = document.getElementById('myGLB');
+    // ====== Eventos ======
+    window.addEventListener('DOMContentLoaded', ()=>{
+      const cubeRed=document.getElementById('cubeRed');
+      const cubeGray=document.getElementById('cubeGray');
+      const cubeBlue=document.getElementById('cubeBlue');
+      const rouletteGroup=document.getElementById('rouletteGroup');
+      const card=document.getElementById('cardGLB');
+      const cyl=document.getElementById('blueCylinder');
+      const btnBack=document.getElementById('btnBack');
 
-      ['cube1','cube2','cube3'].forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
+      cubeRed.addEventListener('click',()=>{
+        hideMenuCubes(); hideAllContent();
+        rouletteGroup.setAttribute('visible','true');
+        rouletteGroup.setAttribute('scale','0 0 0');
+        rouletteGroup.setAttribute('animation__in',{property:'scale',from:'0 0 0',to:'1 1 1',dur:260,easing:'easeOutQuad'});
+        btnBack.style.display="block";
+        spinRoulette();
+      });
 
-        const onPick = () => {
-          pressFx(el);
-          hideCubes();
+      cubeGray.addEventListener('click',()=>{
+        hideMenuCubes(); hideAllContent();
+        card.setAttribute('visible','true');
+        card.setAttribute('animation__in',{property:'scale',from:'0 0 0',to:'0.5 0.5 0.5',dur:600,easing:'easeOutElastic'});
+        btnBack.style.display="block";
+      });
 
-          // Mostrar modelo con escala inicial 0 y crecer a la mitad
-          model.setAttribute('visible', 'true');
-          model.setAttribute('scale', '0 0 0');
-          model.setAttribute('animation__in', {
-            property: 'scale',
-            from: '0 0 0',
-            to: '0.5 0.5 0.5',
-            dur: 250,
-            easing: 'easeOutQuad'
-          });
+      cubeBlue.addEventListener('click',()=>{
+        hideMenuCubes(); hideAllContent();
+        cyl.setAttribute('visible','true');
+        cyl.setAttribute('animation__in',{property:'scale',from:'0 0 0',to:'1 1 1',dur:300,easing:'easeOutQuad'});
+        btnBack.style.display="block";
+      });
 
-          console.log('[UI] Cubo seleccionado → GLB visible girando');
-        };
+      rouletteGroup.addEventListener('click', spinRoulette);
+      rouletteGroup.addEventListener('touchstart', spinRoulette, {passive:true});
 
-        el.addEventListener('click', onPick);
-        el.addEventListener('touchstart', onPick, {passive:true});
-        el.addEventListener('mouseenter', () => el.setAttribute('scale','1.05 1.05 1.05'));
-        el.addEventListener('mouseleave', () => el.setAttribute('scale','1 1 1'));
+      btnBack.addEventListener('click',()=>{
+        hideAllContent();
+        showMenuCubes();
+        btnBack.style.display="none";
       });
     });
   </script>
