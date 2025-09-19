@@ -4,11 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>AR marcador con A-Frame + AR.js</title>
-  <!-- A-Frame (motor 3D sobre WebGL) -->
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <!-- AR.js para A-Frame (detección de marcador) -->
+  <!-- AR.js -->
   <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.0/aframe/build/aframe-ar.js"></script>
-  <!-- Si raw.githack te falla, usa este en su lugar: -->
   <!-- <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.js"></script> -->
   <style>
     body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans"; }
@@ -16,7 +15,7 @@
   </style>
 </head>
 <body>
-  <div class="hint">Apunta la cámara al marcador "Hiro". Toca un cubo para ver el cilindro amarillo.</div>
+  <div class="hint">Apunta la cámara al marcador "Hiro". Toca un cubo para cargar el modelo GLB.</div>
 
   <a-scene
     embedded
@@ -28,41 +27,38 @@
     <a-entity light="type: ambient; intensity: 0.75"></a-entity>
     <a-entity light="type: directional; intensity: 0.9" position="1 1 0"></a-entity>
 
-    <!-- Cámara + cursor/raycaster para clicks/taps -->
+    <!-- Cámara -->
     <a-entity camera>
       <a-entity cursor="rayOrigin: mouse" raycaster="objects: .interactable"></a-entity>
     </a-entity>
 
     <!-- Marcador Hiro -->
     <a-marker preset="hiro" id="mk">
-      <!-- TRES CUBOS (clickables) -->
-      <a-box id="cube1" class="interactable"
-             position="-1.2 0.5 0" depth="1" height="1" width="1"
-             material="color: #E53935; opacity: 0.9; metalness: 0.2; roughness: 0.6">
-      </a-box>
+      <!-- Cubos -->
+      <a-box id="cube1" class="interactable" position="-1.2 0.5 0" depth="1" height="1" width="1"
+             material="color: #E53935; opacity: 0.9; metalness: 0.2; roughness: 0.6"></a-box>
 
-      <a-box id="cube2" class="interactable"
-             position="0 0.5 0" depth="1" height="1" width="1"
-             material="color: #9E9E9E; opacity: 0.9; metalness: 0.2; roughness: 0.6">
-      </a-box>
+      <a-box id="cube2" class="interactable" position="0 0.5 0" depth="1" height="1" width="1"
+             material="color: #9E9E9E; opacity: 0.9; metalness: 0.2; roughness: 0.6"></a-box>
 
-      <a-box id="cube3" class="interactable"
-             position="1.2 0.5 0" depth="1" height="1" width="1"
-             material="color: #1E88E5; opacity: 0.9; metalness: 0.2; roughness: 0.6">
-      </a-box>
+      <a-box id="cube3" class="interactable" position="1.2 0.5 0" depth="1" height="1" width="1"
+             material="color: #1E88E5; opacity: 0.9; metalness: 0.2; roughness: 0.6"></a-box>
 
-      <!-- CILINDRO AMARILLO (inicialmente oculto) -->
-      <a-cylinder id="cylYellow"
-                  position="0 0.6 0" radius="0.35" height="1.2"
-                  material="color: #FDD835; metalness: 0.2; roughness: 0.5"
-                  visible="false">
-      </a-cylinder>
+      <!-- Modelo GLB -->
+      <a-entity id="myGLB"
+                gltf-model="url(./ACCION_PRUEBA_ESCANEABLE.glb)"
+                position="0 0 0"
+                rotation="0 0 0"
+                scale="0 0 0"
+                visible="false"
+                animation-mixer
+                animation__rotate="property: rotation; to: 0 360 0; loop: true; dur: 4000; easing: linear">
+      </a-entity>
     </a-marker>
 
   </a-scene>
 
   <script>
-    // Utilidad: ocultar los cubos
     function hideCubes() {
       ['cube1','cube2','cube3'].forEach(id => {
         const el = document.getElementById(id);
@@ -70,7 +66,6 @@
       });
     }
 
-    // Pequeño efecto al tocar
     function pressFx(el) {
       if (!el) return;
       el.setAttribute('animation__press', {
@@ -78,9 +73,8 @@
       });
     }
 
-    // Conexión de eventos
     window.addEventListener('DOMContentLoaded', () => {
-      const cyl = document.getElementById('cylYellow');
+      const model = document.getElementById('myGLB');
 
       ['cube1','cube2','cube3'].forEach(id => {
         const el = document.getElementById(id);
@@ -89,12 +83,19 @@
         const onPick = () => {
           pressFx(el);
           hideCubes();
-          cyl.setAttribute('visible', 'true');
-          // opcional: animación de entrada del cilindro
-          cyl.setAttribute('animation__in', {
-            property: 'scale', from: '0 0 0', to: '1 1 1', dur: 200, easing: 'easeOutQuad'
+
+          // Mostrar modelo con escala inicial 0 y crecer a la mitad
+          model.setAttribute('visible', 'true');
+          model.setAttribute('scale', '0 0 0');
+          model.setAttribute('animation__in', {
+            property: 'scale',
+            from: '0 0 0',
+            to: '0.5 0.5 0.5',
+            dur: 250,
+            easing: 'easeOutQuad'
           });
-          console.log('[UI] Seleccionado', id, '→ mostrar cilindro');
+
+          console.log('[UI] Cubo seleccionado → GLB visible girando');
         };
 
         el.addEventListener('click', onPick);
