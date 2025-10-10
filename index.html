@@ -3,217 +3,76 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>AR marcador — Ruleta con shader flat</title>
-
-  <!-- A-Frame -->
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <!-- AR.js -->
-  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.js"></script>
-
+  <title>Inicio — Demo 3 Botones</title>
   <style>
-    body { margin:0; font-family: system-ui, sans-serif; }
-    .hint { position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); background: rgba(0,0,0,.65); color:#fff; padding:8px 12px; border-radius:10px; font-size:14px; z-index:9; }
-
-    /* Botón HUD */
-    #btnBack {
-      position: fixed; top:12px; left:12px;
-      background:#212121; color:#fff; padding:10px 16px; border-radius:8px;
-      font-size:14px; cursor:pointer; z-index:99; display:none; border:0;
+    :root{
+      --bg:#0f172a;      /* slate-900 */
+      --card:#111827;    /* gray-900 */
+      --text:#e5e7eb;    /* gray-200 */
+      --accent:#22c55e;  /* green-500 */
+      --accent-2:#60a5fa;/* blue-400 */
+      --accent-3:#f59e0b;/* amber-500 */
     }
-    #btnBack:active { transform: scale(0.98); }
-
-    /* Resultado HUD */
-    #resultHUD {
-      position: fixed; top:12px; right:12px;
-      background: rgba(33,33,33,.85); color:#fff; padding:10px 14px; border-radius:8px;
-      font-size:16px; z-index:99; display:none;
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,'Helvetica Neue',Arial,sans-serif;background:linear-gradient(180deg,#0b1223 0%,#0f172a 100%);color:var(--text)}
+    .wrap{min-height:100%;display:flex;align-items:center;justify-content:center;padding:24px}
+    .card{
+      width:min(960px,100%);
+      background:linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.02));
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:20px;
+      padding:28px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.35);
+      backdrop-filter: blur(6px);
     }
+    header h1{margin:0 0 8px;font-size:clamp(20px,3.6vw,32px)}
+    header p{margin:0 0 20px;opacity:.85}
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+    }
+    @media (max-width:860px){
+      .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+    @media (max-width:520px){
+      .grid{grid-template-columns:1fr}
+    }
+    .btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      padding:14px 16px;border-radius:14px;text-decoration:none;font-weight:600;
+      border:1px solid rgba(255,255,255,0.1);
+      background:rgba(255,255,255,0.04);
+      transition:transform .06s ease, box-shadow .2s ease, background .2s ease;
+      text-align:center;min-height:56px;
+    }
+    .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.3)}
+    .btn:active{transform:translateY(0)}
+    .btn-1{--c:var(--accent);    box-shadow:inset 0 0 0 2px color-mix(in oklab, var(--c) 50%, transparent)}
+    .btn-2{--c:var(--accent-2);  box-shadow:inset 0 0 0 2px color-mix(in oklab, var(--c) 50%, transparent)}
+    .btn-3{--c:var(--accent-3);  box-shadow:inset 0 0 0 2px color-mix(in oklab, var(--c) 50%, transparent)}
+    .btn-1:hover{background:color-mix(in oklab, var(--c) 14%, transparent)}
+    .btn-2:hover{background:color-mix(in oklab, var(--c) 14%, transparent)}
+    .btn-3:hover{background:color-mix(in oklab, var(--c) 14%, transparent)}
+    footer{margin-top:18px;font-size:14px;opacity:.7}
   </style>
 </head>
 <body>
-  <div class="hint">Rojo: ruleta (click = girar), Gris: tarjeta GLB, Azul: cilindro.</div>
-  <button id="btnBack">Volver</button>
-  <div id="resultHUD"></div>
+  <main class="wrap">
+    <section class="card" aria-labelledby="titulo">
+      <header>
+        <h1 id="titulo">Página básica con 3 botones</h1>
+        <p>Demo responsiva: cada botón te lleva a otra página HTML.</p>
+      </header>
 
-  <a-scene embedded vr-mode-ui="enabled:false" arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false">
-    <!-- Luces (opcional, para otros objetos) -->
-    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
-    <a-entity light="type: directional; intensity: 1.2" position="1 1 0"></a-entity>
+      <nav class="grid" aria-label="Navegación principal">
+        <a class="btn btn-1" href="chance.html" role="button" aria-label="Ir a Página 1">Ir a chance</a>
+        <a class="btn btn-2" href="ruleta.html" role="button" aria-label="Ir a Página 2">Ir a ruleta</a>
+        <a class="btn btn-3" href="tarjeta.html" role="button" aria-label="Ir a Página 3">Ir a tarjeta </a>
+      </nav>
 
-    <a-entity camera>
-      <a-entity cursor="rayOrigin: mouse" raycaster="objects: .interactable"></a-entity>
-    </a-entity>
-
-    <a-marker preset="hiro" id="mk">
-
-      <!-- ====== MENÚ (3 cubos) ====== -->
-      <a-box id="cubeRed"  class="interactable" position="-1.2 0.5 0" depth="1" height="1" width="1"
-             material="color:#E53935; opacity:0.95;"></a-box>
-      <a-box id="cubeGray" class="interactable" position="0 0.5 0" depth="1" height="1" width="1"
-             material="color:#9E9E9E; opacity:0.95;"></a-box>
-      <a-box id="cubeBlue" class="interactable" position="1.2 0.5 0" depth="1" height="1" width="1"
-             material="color:#1E88E5; opacity:0.95;"></a-box>
-
-      <!-- ====== RULETA ====== -->
-      <a-entity id="rouletteGroup" position="0 0.6 0" visible="false" class="interactable">
-
-        <!-- Parte que GIRA (spinner) -->
-        <a-entity id="rouletteSpinner">
-          <!-- Disco con shader flat (NO depende de la luz) -->
-          <a-cylinder radius="0.95" height="0.05" rotation="90 0 0"
-                      material="shader: flat; src: #rouletteCanvas; side: double"></a-cylinder>
-
-          <!-- Aro dorado -->
-          <a-torus radius="1.05" radius-tubular="0.04"
-                   material="color:#C8A853; metalness:0.9; roughness:0.2"></a-torus>
-
-          <!-- Hub central -->
-          <a-cylinder radius="0.12" height="0.06" position="0 0.05 0" rotation="90 0 0"
-                      material="color:#BDBDBD; metalness:0.7; roughness:0.2"></a-cylinder>
-        </a-entity>
-
-        <!-- Aguja fija -->
-        <a-entity id="rouletteNeedle">
-          <a-cone height="0.16" radius-bottom="0.06" radius-top="0.0"
-                  position="0 1.06 0.055" rotation="-90 0 0"
-                  material="color:#FF5252;"></a-cone>
-          <a-cylinder radius="0.025" height="0.08"
-                      position="0 0.98 0.04" rotation="-90 0 0"
-                      material="color:#263238;"></a-cylinder>
-        </a-entity>
-      </a-entity>
-
-      <!-- ====== TARJETA GLB ====== -->
-      <a-entity id="cardGLB" gltf-model="url(./ACCION_PRUEBA_ESCANEABLE.glb)"
-                position="0 0 0" scale="0 0 0" visible="false"
-                animation-mixer
-                animation__rotate="property: rotation; to: 0 360 0; loop:true; dur:4000; easing:linear"></a-entity>
-
-      <!-- ====== CILINDRO ====== -->
-      <a-cylinder id="blueCylinder" position="0 0.6 0" radius="0.35" height="1.2"
-                  material="color:#FDD835;" visible="false" scale="0 0 0"></a-cylinder>
-
-    </a-marker>
-
-    <!-- Canvas de la ruleta -->
-    <a-assets>
-      <canvas id="rouletteCanvas" width="1024" height="1024"></canvas>
-    </a-assets>
-  </a-scene>
-
-  <script>
-    // ====== Dibuja la ruleta ======
-    function drawRoulette() {
-      const cvs = document.getElementById('rouletteCanvas');
-      const ctx = cvs.getContext('2d');
-      const W = cvs.width, H = cvs.height;
-      const cx = W/2, cy = H/2, R = 480;
-
-      const colors = ['#FFCDD2','#C8E6C9','#BBDEFB','#FFF9C4','#D1C4E9'];
-
-      ctx.clearRect(0,0,W,H);
-      ctx.save(); ctx.translate(cx, cy);
-
-      for (let i=0; i<5; i++) {
-        const a0 = (i*72) * Math.PI/180;
-        const a1 = ((i+1)*72) * Math.PI/180;
-
-        ctx.fillStyle = colors[i];
-        ctx.beginPath(); ctx.moveTo(0,0);
-        ctx.arc(0,0,R, a0, a1);
-        ctx.closePath(); ctx.fill();
-
-        ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.arc(0,0,R, a0, a1); ctx.stroke();
-
-        ctx.fillStyle = '#212121';
-        ctx.font = 'bold 120px sans-serif';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        const ang = (i*72+36) * Math.PI/180;
-        ctx.fillText(String(i+1), (R*0.6)*Math.cos(ang), (R*0.6)*Math.sin(ang));
-      }
-
-      ctx.restore();
-    }
-    drawRoulette();
-
-    // ====== Helpers ======
-    function hideMenuCubes(){['cubeRed','cubeGray','cubeBlue'].forEach(id=>document.getElementById(id).setAttribute('visible','false'));}
-    function showMenuCubes(){['cubeRed','cubeGray','cubeBlue'].forEach(id=>document.getElementById(id).setAttribute('visible','true'));}
-    function hideAllContent(){
-      const spinner=document.getElementById('rouletteSpinner');
-      ['rouletteGroup','cardGLB','blueCylinder'].forEach(id=>{
-        const el=document.getElementById(id);
-        el.setAttribute('visible','false');
-        el.setAttribute('scale','0 0 0');
-      });
-      if (spinner) spinner.removeAttribute('animation__spin');
-      document.getElementById('resultHUD').style.display='none';
-    }
-
-    // ====== Spin ======
-    function spinRoulette(){
-      const spinner=document.getElementById('rouletteSpinner');
-      const hud=document.getElementById('resultHUD');
-      const spins=3+Math.random()*1.5;
-      const targetRotation=360*spins+Math.floor(Math.random()*360);
-
-      spinner.setAttribute('animation__spin',{
-        property:'rotation', to:`0 0 ${targetRotation}`, dur:3200, easing:'easeOutCubic'
-      });
-
-      hud.style.display='none';
-      setTimeout(()=>{
-        const angle=(targetRotation%360+360)%360;
-        const sector=Math.floor((angle/72))%5;
-        const finalNumber=(5-sector+1);
-        hud.textContent='Te tocó: '+finalNumber;
-        hud.style.display='block';
-      },3200);
-    }
-
-    // ====== Eventos ======
-    window.addEventListener('DOMContentLoaded', ()=>{
-      const cubeRed=document.getElementById('cubeRed');
-      const cubeGray=document.getElementById('cubeGray');
-      const cubeBlue=document.getElementById('cubeBlue');
-      const rouletteGroup=document.getElementById('rouletteGroup');
-      const card=document.getElementById('cardGLB');
-      const cyl=document.getElementById('blueCylinder');
-      const btnBack=document.getElementById('btnBack');
-
-      cubeRed.addEventListener('click',()=>{
-        hideMenuCubes(); hideAllContent();
-        rouletteGroup.setAttribute('visible','true');
-        rouletteGroup.setAttribute('scale','0 0 0');
-        rouletteGroup.setAttribute('animation__in',{property:'scale',from:'0 0 0',to:'1 1 1',dur:260,easing:'easeOutQuad'});
-        btnBack.style.display="block";
-        spinRoulette();
-      });
-
-      cubeGray.addEventListener('click',()=>{
-        hideMenuCubes(); hideAllContent();
-        card.setAttribute('visible','true');
-        card.setAttribute('animation__in',{property:'scale',from:'0 0 0',to:'0.5 0.5 0.5',dur:600,easing:'easeOutElastic'});
-        btnBack.style.display="block";
-      });
-
-      cubeBlue.addEventListener('click',()=>{
-        hideMenuCubes(); hideAllContent();
-        cyl.setAttribute('visible','true');
-        cyl.setAttribute('animation__in',{property:'scale',from:'0 0 0',to:'1 1 1',dur:300,easing:'easeOutQuad'});
-        btnBack.style.display="block";
-      });
-
-      rouletteGroup.addEventListener('click', spinRoulette);
-      rouletteGroup.addEventListener('touchstart', spinRoulette, {passive:true});
-
-      btnBack.addEventListener('click',()=>{
-        hideAllContent();
-        showMenuCubes();
-        btnBack.style.display="none";
-      });
-    });
-  </script>
+      <footer>Hecho con HTML + CSS puro. Totalmente responsive.</footer>
+    </section>
+  </main>
 </body>
 </html>

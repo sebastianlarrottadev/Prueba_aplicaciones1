@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Menú de 3 cubos AR</title>
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.js"></script>
+  <style> body { margin:0; font-family: system-ui, sans-serif; } </style>
+</head>
+<body>
+  <a-scene embedded vr-mode-ui="enabled:false" arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false">
+    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+    <a-entity light="type: directional; intensity: 1.2" position="1 1 0"></a-entity>
+
+    <a-entity camera></a-entity>
+
+    <a-marker preset="hiro">
+      <a-box position="-1.2 0.5 0" depth="1" height="1" width="1" material="color:#E53935; opacity:0.95;"></a-box>
+      <a-box position="0 0.5 0"    depth="1" height="1" width="1" material="color:#9E9E9E; opacity:0.95;"></a-box>
+      <a-box position="1.2 0.5 0"  depth="1" height="1" width="1" material="color:#1E88E5; opacity:0.95;"></a-box>
+    </a-marker>
+  </a-scene>
+</body>
+</html>
