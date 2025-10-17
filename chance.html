@@ -3,23 +3,224 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Menú de 3 cubos AR</title>
+  <title>Menú Futurista AR</title>
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.js"></script>
-  <style> body { margin:0; font-family: system-ui, sans-serif; } </style>
+  <style>
+    body { 
+      margin: 0; 
+      overflow: hidden; 
+      font-family: system-ui, sans-serif; 
+      background: #000;
+    }
+    #loading {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #00eaff;
+      font-size: 1.5rem;
+      text-shadow: 0 0 10px #00eaff;
+      z-index: 100;
+    }
+    .btn-2d {
+      width: 220px;
+      padding: 15px;
+      margin: 10px auto;
+      text-align: center;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #00eaff;
+      background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #00eaff;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #00eaff;
+      text-shadow: 0 0 10px #00eaff;
+      cursor: pointer;
+      transition: 0.3s ease;
+      backdrop-filter: blur(5px);
+    }
+    .btn-2d:hover {
+      transform: scale(1.05);
+      background: rgba(0, 255, 255, 0.1);
+      box-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff;
+    }
+    #menu {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 90%;
+      max-width: 300px;
+      z-index: 10;
+      pointer-events: auto;
+    }
+    @media (max-width: 600px) {
+      .btn-2d { font-size: 1rem; width: 180px; padding: 12px; }
+    }
+  </style>
 </head>
 <body>
-  <a-scene embedded vr-mode-ui="enabled:false" arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false">
-    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
-    <a-entity light="type: directional; intensity: 1.2" position="1 1 0"></a-entity>
+  <div id="loading">Escanea el marcador Hiro para ver los botones 3D</div>
+  <div id="menu" style="display:none;">
+    <div class="btn-2d" onclick="accion1()">🔄 Cambia tu carta por otra del mazo</div>
+    <div class="btn-2d" onclick="accion2()">🎲 Cambia las probabilidades de la carta</div>
+    <div class="btn-2d" onclick="accion3()">🃏 Elijo esta carta</div>
+  </div>
 
+  <a-scene 
+    embedded 
+    vr-mode-ui="enabled: false" 
+    arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false;"
+    renderer="logarithmicDepthBuffer: true;"
+  >
+    <a-assets>
+      <!-- Materiales para los botones -->
+      <a-mixin id="btn-material" 
+               material="shader: flat; color: #001122; emissive: #00eaff; emissiveIntensity: 0.3"
+               shadow="receive: false">
+      </a-mixin>
+    </a-assets>
+    
+    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+    <a-entity light="type: point; intensity: 1.5; position: 0 2 2" color="#00eaff"></a-entity>
     <a-entity camera></a-entity>
 
-    <a-marker preset="hiro">
-      <a-box position="-1.2 0.5 0" depth="1" height="1" width="1" material="color:#E53935; opacity:0.95;"></a-box>
-      <a-box position="0 0.5 0"    depth="1" height="1" width="1" material="color:#9E9E9E; opacity:0.95;"></a-box>
-      <a-box position="1.2 0.5 0"  depth="1" height="1" width="1" material="color:#1E88E5; opacity:0.95;"></a-box>
+    <a-marker id="hiro-marker" preset="hiro" emiteEvents="true">
+      <!-- Aro decorativo futurista -->
+      <a-torus position="0 0.5 0" radius="1" radius-tubular="0.05" color="#00ffff" 
+               material="emissive:#00ffff; emissiveIntensity:1"></a-torus>
+      <a-ring position="0 0.5 0" radius-inner="0.9" radius-outer="1" color="#00ccff" opacity="0.6"></a-ring>
+      
+      <!-- Botones 3D -->
+      <a-entity id="buttons-container" position="0 1.5 0" visible="false">
+        <!-- Botón 1 -->
+        <a-entity class="btn-3d" position="-1.5 0 0" data-action="1">
+          <a-box class="btn-base" width="0.8" height="0.3" depth="0.1" mixin="btn-material"
+                 animation__hover="property: scale; to: 1.1 1.1 1.1; dur: 300; startEvents: mouseenter"
+                 animation__unhover="property: scale; to: 1 1 1; dur: 300; startEvents: mouseleave">
+          </a-box>
+          <a-text value="🔄 Cambiar carta" position="0 0 0.06" align="center" width="2" 
+                  color="#00eaff" shader="msdf"></a-text>
+          <a-ring position="0 0 0.05" radius-inner="0.35" radius-outer="0.4" color="#00eaff" 
+                  opacity="0.7" rotation="-90 0 0"></a-ring>
+        </a-entity>
+        
+        <!-- Botón 2 -->
+        <a-entity class="btn-3d" position="0 0 0" data-action="2">
+          <a-box class="btn-base" width="0.8" height="0.3" depth="0.1" mixin="btn-material"
+                 animation__hover="property: scale; to: 1.1 1.1 1.1; dur: 300; startEvents: mouseenter"
+                 animation__unhover="property: scale; to: 1 1 1; dur: 300; startEvents: mouseleave">
+          </a-box>
+          <a-text value="🎲 Probabilidades" position="0 0 0.06" align="center" width="2" 
+                  color="#00eaff" shader="msdf"></a-text>
+          <a-ring position="0 0 0.05" radius-inner="0.35" radius-outer="0.4" color="#00eaff" 
+                  opacity="0.7" rotation="-90 0 0"></a-ring>
+        </a-entity>
+        
+        <!-- Botón 3 -->
+        <a-entity class="btn-3d" position="1.5 0 0" data-action="3">
+          <a-box class="btn-base" width="0.8" height="0.3" depth="0.1" mixin="btn-material"
+                 animation__hover="property: scale; to: 1.1 1.1 1.1; dur: 300; startEvents: mouseenter"
+                 animation__unhover="property: scale; to: 1 1 1; dur: 300; startEvents: mouseleave">
+          </a-box>
+          <a-text value="🃏 Elegir carta" position="0 0 0.06" align="center" width="2" 
+                  color="#00eaff" shader="msdf"></a-text>
+          <a-ring position="0 0 0.05" radius-inner="0.35" radius-outer="0.4" color="#00eaff" 
+                  opacity="0.7" rotation="-90 0 0"></a-ring>
+        </a-entity>
+        
+        <!-- Efectos de partículas alrededor de los botones -->
+        <a-entity particle-system="preset: star; color: #00eaff, #00ffff; particleCount: 50; 
+                                   positionSpread: 3 1 0.5"></a-entity>
+      </a-entity>
+      
+      <!-- Animación de rotación para todo el conjunto -->
+      <a-entity position="0 0 0" rotation="0 0 0" scale="1 1 1">
+        <a-animation attribute="rotation" to="0 360 0" dur="15000" easing="linear" repeat="indefinite"></a-animation>
+      </a-entity>
     </a-marker>
   </a-scene>
+
+  <script>
+    // Detectar cuando el marcador es encontrado
+    document.addEventListener('DOMContentLoaded', function() {
+      const marker = document.querySelector('#hiro-marker');
+      const buttonsContainer = document.querySelector('#buttons-container');
+      const loadingMessage = document.querySelector('#loading');
+      
+      marker.addEventListener('markerFound', function() {
+        console.log('Marcador Hiro detectado');
+        buttonsContainer.setAttribute('visible', 'true');
+        loadingMessage.style.display = 'none';
+        
+        // Animación de entrada para los botones
+        buttonsContainer.setAttribute('animation', {
+          property: 'scale',
+          from: '0 0 0',
+          to: '1 1 1',
+          dur: 800,
+          easing: 'easeOutElastic'
+        });
+      });
+      
+      marker.addEventListener('markerLost', function() {
+        console.log('Marcador Hiro perdido');
+        buttonsContainer.setAttribute('visible', 'false');
+        loadingMessage.style.display = 'block';
+      });
+      
+      // Agregar eventos de clic a los botones 3D
+      document.querySelectorAll('.btn-3d').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const action = this.getAttribute('data-action');
+          switch(action) {
+            case '1':
+              accion1();
+              break;
+            case '2':
+              accion2();
+              break;
+            case '3':
+              accion3();
+              break;
+          }
+          
+          // Efecto visual al hacer clic
+          this.setAttribute('animation', {
+            property: 'scale',
+            from: '1 1 1',
+            to: '0.9 0.9 0.9',
+            dur: 150,
+            easing: 'easeOutQuad'
+          });
+          
+          setTimeout(() => {
+            this.setAttribute('animation', {
+              property: 'scale',
+              from: '0.9 0.9 0.9',
+              to: '1 1 1',
+              dur: 150,
+              easing: 'easeOutQuad'
+            });
+          }, 150);
+        });
+      });
+    });
+
+    function accion1() {
+      alert("Cambiando tu carta por otra del mazo...");
+    }
+    function accion2() {
+      alert("Modificando probabilidades...");
+    }
+    function accion3() {
+      alert("Has elegido esta carta.");
+    }
+  </script>
 </body>
 </html>
