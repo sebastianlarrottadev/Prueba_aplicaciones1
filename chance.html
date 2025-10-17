@@ -7,210 +7,102 @@
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.js"></script>
   <style>
-    body { 
-      margin: 0; 
-      overflow: hidden; 
-      font-family: 'Arial', sans-serif; 
-      background: #000;
-    }
-    
-    #loading {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #00eaff;
-      font-size: 1.5rem;
-      text-shadow: 0 0 10px #00eaff;
-      z-index: 100;
-      text-align: center;
-    }
-    
-    #ar-buttons {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 20;
-    }
-    
-    .btn-ar {
-      position: absolute;
+    body { margin: 0; overflow: hidden; font-family: system-ui, sans-serif; background-color: black; }
+
+    /* Estilo futurista de los botones */
+    .btn {
       width: 220px;
       padding: 15px;
+      margin: 10px auto;
       text-align: center;
       font-size: 1.1rem;
       font-weight: 600;
       color: #00eaff;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0, 0, 0, 0.7);
       border: 2px solid #00eaff;
       border-radius: 10px;
       box-shadow: 0 0 20px #00eaff;
       text-shadow: 0 0 10px #00eaff;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: 0.3s ease;
       backdrop-filter: blur(5px);
-      pointer-events: auto;
-      opacity: 0;
-      transform: scale(0.8);
     }
-    
-    .btn-ar.visible {
-      opacity: 1;
-      transform: scale(1);
-    }
-    
-    .btn-ar:hover {
+
+    .btn:hover {
       transform: scale(1.05);
-      background: rgba(0, 255, 255, 0.15);
+      background: rgba(0, 255, 255, 0.1);
       box-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff;
     }
-    
+
+    /* Contenedor del menú */
+    #menu {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: none; /* Oculto al inicio */
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 90%;
+      max-width: 300px;
+      z-index: 10;
+      pointer-events: auto;
+    }
+
     @media (max-width: 600px) {
-      .btn-ar { 
-        font-size: 1rem; 
-        width: 180px; 
-        padding: 12px; 
-      }
+      .btn { font-size: 1rem; width: 180px; padding: 12px; }
     }
   </style>
 </head>
 <body>
-  <div id="loading">Escanea el marcador Hiro para ver los botones</div>
-  
-  <div id="ar-buttons">
-    <!-- Los botones se posicionarán aquí dinámicamente -->
+  <!-- MENÚ FUTURISTA -->
+  <div id="menu">
+    <div class="btn" onclick="accion1()">🔄 Cambia tu carta por otra del mazo</div>
+    <div class="btn" onclick="accion2()">🎲 Cambia las probabilidades de la carta</div>
+    <div class="btn" onclick="accion3()">🃏 Elijo esta carta</div>
   </div>
 
-  <a-scene 
-    embedded 
-    vr-mode-ui="enabled: false" 
+  <!-- ESCENA AR -->
+  <a-scene
+    embedded
+    vr-mode-ui="enabled: false"
     arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false;"
   >
     <a-entity light="type: ambient; intensity: 0.8"></a-entity>
-    <a-entity light="type: point; intensity: 1.5; position: 0 2 2" color="#00eaff"></a-entity>
+    <a-entity light="type: point; intensity: 1.5; position='0 2 2'" color="#00eaff"></a-entity>
     <a-entity camera></a-entity>
 
-    <a-marker id="hiro-marker" preset="hiro" emitevents="true">
-      <!-- Aro decorativo futurista -->
-      <a-torus position="0 0.5 0" radius="1" radius-tubular="0.05" color="#00ffff" 
-               material="emissive:#00ffff; emissiveIntensity:1"></a-torus>
+    <!-- Marcador Hiro -->
+    <a-marker preset="hiro" id="hiroMarker">
+      <a-torus position="0 0.5 0" radius="1" radius-tubular="0.05" color="#00ffff"
+        material="emissive:#00ffff; emissiveIntensity:1"></a-torus>
       <a-ring position="0 0.5 0" radius-inner="0.9" radius-outer="1" color="#00ccff" opacity="0.6"></a-ring>
-      
-      <!-- Animación de rotación -->
       <a-entity position="0 0 0" rotation="0 0 0" scale="1 1 1">
-        <a-animation attribute="rotation" to="0 360 0" dur="15000" easing="linear" repeat="indefinite"></a-animation>
+        <a-animation attribute="rotation" to="0 360 0" dur="8000" easing="linear" repeat="indefinite"></a-animation>
       </a-entity>
     </a-marker>
   </a-scene>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const marker = document.querySelector('#hiro-marker');
-      const loadingMessage = document.querySelector('#loading');
-      const arButtons = document.querySelector('#ar-buttons');
-      
-      // Crear botones
-      const buttonData = [
-        { id: 'btn1', text: '🔄 Cambia tu carta por otra del mazo', action: accion1 },
-        { id: 'btn2', text: '🎲 Cambia las probabilidades de la carta', action: accion2 },
-        { id: 'btn3', text: '🃏 Elijo esta carta', action: accion3 }
-      ];
-      
-      buttonData.forEach(data => {
-        const btn = document.createElement('div');
-        btn.className = 'btn-ar';
-        btn.id = data.id;
-        btn.textContent = data.text;
-        btn.onclick = data.action;
-        arButtons.appendChild(btn);
-      });
-      
-      // Variables para seguimiento del marcador
-      let markerVisible = false;
-      let markerPosition = { x: 0, y: 0 };
-      
-      // Actualizar posición de los botones
-      function updateButtonPositions() {
-        if (!markerVisible) return;
-        
-        const btn1 = document.getElementById('btn1');
-        const btn2 = document.getElementById('btn2');
-        const btn3 = document.getElementById('btn3');
-        
-        // Posicionar botones verticalmente sobre el marcador
-        btn1.style.left = `${markerPosition.x - 110}px`;
-        btn1.style.top = `${markerPosition.y - 120}px`;
-        
-        btn2.style.left = `${markerPosition.x - 110}px`;
-        btn2.style.top = `${markerPosition.y}px`;
-        
-        btn3.style.left = `${markerPosition.x - 110}px`;
-        btn3.style.top = `${markerPosition.y + 120}px`;
-      }
-      
-      // Detectar cuando el marcador es encontrado
-      marker.addEventListener('markerFound', function() {
-        console.log('Marcador Hiro detectado');
-        markerVisible = true;
-        loadingMessage.style.display = 'none';
-        
-        // Mostrar botones con animación
-        const buttons = document.querySelectorAll('.btn-ar');
-        buttons.forEach((btn, index) => {
-          setTimeout(() => {
-            btn.classList.add('visible');
-          }, index * 150);
-        });
-      });
-      
-      marker.addEventListener('markerLost', function() {
-        console.log('Marcador Hiro perdido');
-        markerVisible = false;
-        loadingMessage.style.display = 'block';
-        
-        // Ocultar botones
-        const buttons = document.querySelectorAll('.btn-ar');
-        buttons.forEach(btn => {
-          btn.classList.remove('visible');
-        });
-      });
-      
-      // Actualizar posición del marcador en la pantalla
-      function updateMarkerScreenPosition() {
-        if (!marker.object3D.visible) return;
-        
-        // Obtener posición 3D del marcador
-        const markerPosition3D = new THREE.Vector3();
-        marker.object3D.getWorldPosition(markerPosition3D);
-        
-        // Convertir a coordenadas de pantalla
-        const camera = document.querySelector('[camera]').object3D;
-        const vector = markerPosition3D.project(camera);
-        
-        markerPosition.x = (vector.x * 0.5 + 0.5) * window.innerWidth;
-        markerPosition.y = -(vector.y * 0.5 - 0.5) * window.innerHeight;
-        
-        updateButtonPositions();
-      }
-      
-      // Actualizar posición en cada frame
-      const scene = document.querySelector('a-scene');
-      scene.addEventListener('renderstart', function() {
-        setInterval(updateMarkerScreenPosition, 100);
-      });
+    const menu = document.getElementById("menu");
+    const marker = document.getElementById("hiroMarker");
+
+    // Mostrar/ocultar menú según detección del marcador
+    marker.addEventListener("markerFound", () => {
+      menu.style.display = "flex";
+    });
+    marker.addEventListener("markerLost", () => {
+      menu.style.display = "none";
     });
 
+    // Acciones de los botones
     function accion1() {
       alert("Cambiando tu carta por otra del mazo...");
     }
-    
     function accion2() {
       alert("Modificando probabilidades...");
     }
-    
     function accion3() {
       alert("Has elegido esta carta.");
     }
