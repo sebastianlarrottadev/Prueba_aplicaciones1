@@ -418,7 +418,12 @@
         if(Math.floor(norm/15)!==Math.floor(prev/15)) playTick();
         lastTickDeg=deg;
 
-    
+        if(t<1){ rafId=requestAnimationFrame(step); }
+        else{
+          hud.textContent='Te tocó: '+result; hud.style.display='block';
+          showFullResult(result);
+          spinning=false;
+        }
       };
       rafId=requestAnimationFrame(step);
     }
