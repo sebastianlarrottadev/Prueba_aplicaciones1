@@ -3,38 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Menú Futurista AR Estable</title>
+  <title>Menú Futurista con Botones PNG AR</title>
 
   <!-- Librerías -->
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.js"></script>
 
   <style>
-    body { margin: 0; overflow: hidden; background: black; font-family: system-ui, sans-serif; }
-
-    /* Estilo general de los botones */
-    .boton {
-      width: 240px;
-      padding: 15px;
-      margin: 8px 0;
-      text-align: center;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #00eaff;
-      background: rgba(0, 0, 0, 0.7);
-      border: 2px solid #00eaff;
-      border-radius: 10px;
-      box-shadow: 0 0 20px #00eaff;
-      text-shadow: 0 0 10px #00eaff;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      backdrop-filter: blur(5px);
-    }
-    .boton:hover {
-      transform: scale(1.05);
-      background: rgba(0, 255, 255, 0.1);
-      box-shadow: 0 0 30px #00ffff, 0 0 60px #00ffff;
-    }
+    body { margin: 0; overflow: hidden; background: black; }
   </style>
 </head>
 <body>
@@ -55,48 +31,45 @@
       smoothTolerance="0.01"
       smoothThreshold="5">
 
-      <!-- Base visual (anillo futurista) -->
+      <!-- Efecto base futurista -->
       <a-torus position="0 0 0" radius="1" radius-tubular="0.05" color="#00ffff"
                material="emissive:#00ffff; emissiveIntensity:1"></a-torus>
 
-      <!-- Contenedor de botones flotantes -->
+      <!-- Menú con botones como imágenes -->
       <a-entity id="menu3d" position="0 1.2 0" scale="1 1 1">
 
         <!-- Botón 1 -->
-        <a-plane position="0 0.4 0" width="1.8" height="0.4"
-                 color="#001020"
-                 material="opacity:0.85; transparent:true"
+        <a-image src="1.png"
+                 position="0 0.4 0"
+                 width="1.8" height="0.5"
+                 transparent="true"
                  class="clickable"
                  event-set__enter="_event: mouseenter; scale: 1.1 1.1 1.1"
                  event-set__leave="_event: mouseleave; scale: 1 1 1"
                  onclick="accion1()">
-          <a-text value="🔄 Cambia tu carta por otra del mazo"
-                  align="center" color="#00eaff" width="3"></a-text>
-        </a-plane>
+        </a-image>
 
         <!-- Botón 2 -->
-        <a-plane position="0 0 0" width="1.8" height="0.4"
-                 color="#001020"
-                 material="opacity:0.85; transparent:true"
+        <a-image src="2.png"
+                 position="0 0 0"
+                 width="1.8" height="0.5"
+                 transparent="true"
                  class="clickable"
                  event-set__enter="_event: mouseenter; scale: 1.1 1.1 1.1"
                  event-set__leave="_event: mouseleave; scale: 1 1 1"
                  onclick="accion2()">
-          <a-text value="🎲 Cambia las probabilidades de la carta"
-                  align="center" color="#00eaff" width="3"></a-text>
-        </a-plane>
+        </a-image>
 
         <!-- Botón 3 -->
-        <a-plane position="0 -0.4 0" width="1.8" height="0.4"
-                 color="#001020"
-                 material="opacity:0.85; transparent:true"
+        <a-image src="3OP.png"
+                 position="0 -0.4 0"
+                 width="1.8" height="0.5"
+                 transparent="true"
                  class="clickable"
                  event-set__enter="_event: mouseenter; scale: 1.1 1.1 1.1"
                  event-set__leave="_event: mouseleave; scale: 1 1 1"
                  onclick="accion3()">
-          <a-text value="🃏 Elijo esta carta"
-                  align="center" color="#00eaff" width="3"></a-text>
-        </a-plane>
+        </a-image>
 
       </a-entity>
     </a-marker>
