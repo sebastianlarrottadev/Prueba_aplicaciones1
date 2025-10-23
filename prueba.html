@@ -2,123 +2,181 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Ruleta AR fluida — persistente</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Menú Futurista AR — Movimiento fluido + Tap preciso</title>
 
-  <!-- A-Frame y AR.js -->
-  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.2/aframe/build/aframe-ar-nft.js"></script>
+  <!-- Librerías -->
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.js"></script>
 
   <style>
-    body { margin:0; overflow:hidden; font-family:sans-serif; }
-    #fullResult {
-      position:fixed; inset:0; background:rgba(0,0,0,0.7);
-      display:none; align-items:center; justify-content:center;
-      flex-direction:column; color:white; z-index:20;
+    body { margin: 0; overflow: hidden; background: black; }
+
+    #aviso {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgb(0, 64, 107);
+      border: 2px solid #00ffff;
+      box-shadow: 0 0 15px #00ffff;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.3em;
+      text-align: center;
+      padding: 20px 30px;
+      border-radius: 10px;
+      display: none;
+      z-index: 999;
+      animation: glow 1.5s ease-in-out infinite alternate;
     }
-    #fullResult span { font-size:6em; font-weight:bold; }
-    #bigMsg { font-size:1.4em; margin-top:0.5em; }
-    #mute {
-      position:fixed; top:10px; left:10px;
-      background:#222; color:#fff; border:none;
-      padding:6px 10px; border-radius:6px; z-index:30;
+
+    @keyframes glow {
+      from { box-shadow: 0 0 10px #00ffff; }
+      to { box-shadow: 0 0 25px #00ffff; }
     }
   </style>
 </head>
 <body>
 
-<button id="mute">🔊 Sonido</button>
-<div id="fullResult">
-  <span id="bigNumber"></span>
-  <div id="bigMsg"></div>
-</div>
+  <div id="aviso"></div>
 
-<a-scene
-  id="scene"
-  embedded
-  arjs="sourceType: webcam; debugUIEnabled: false;"
-  vr-mode-ui="enabled: false"
->
-  <!-- Marcador base -->
-  <a-marker id="marker" preset="hiro"></a-marker>
+  <a-scene
+    embedded
+    vr-mode-ui="enabled: false"
+    renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true;"
+    arjs="sourceType: webcam; detectionMode: mono; trackingMethod: best; debugUIEnabled: false;">
 
-  <!-- Cámara -->
-  <a-entity camera></a-entity>
+    <!-- Luces -->
+    <a-entity light="type: ambient; intensity: 0.9"></a-entity>
+    <a-entity light="type: directional; intensity: 1.2" position="1 1 1"></a-entity>
 
-  <!-- Grupo ruleta (fuera del marcador) -->
-  <a-entity id="rouletteGroup" position="0 0 0" rotation="0 0 0" scale="1 1 1">
-    <a-cylinder id="rouletteSpinner" height="0.05" radius="1" color="#fff"
-                rotation="90 0 0" segments-radial="64">
-      <a-animation
-        attribute="rotation"
-        to="90 360 0"
-        dur="5000"
-        easing="linear"
-        repeat="indefinite">
-      </a-animation>
-    </a-cylinder>
-  </a-entity>
-</a-scene>
+    <!-- Cámara con cursor para tap preciso -->
+    <a-entity id="cam"
+              camera
+              cursor="fuse: false; rayOrigin: mouse;"
+              raycaster="objects: .clickable; far: 10;">
+    </a-entity>
 
-<script>
-/* ========================== */
-let muted = false;
+    <!-- Marcador con suavizado -->
+    <a-marker type="pattern" preset="hiro"
+      smooth="true"
+      smoothCount="12"
+      smoothTolerance="0.01"
+      smoothThreshold="5">
 
-function showFullResult(n) {
-  const overlay = document.getElementById('fullResult');
-  document.getElementById('bigNumber').textContent = n;
-  document.getElementById('bigMsg').textContent = 'Mueve ' + n + ' casillas en el mapa';
-  overlay.style.display = 'flex';
-  overlay.animate([{opacity:0},{opacity:1}],{duration:250,easing:'ease-out'});
-}
+      <!-- Menú flotante con movimiento interpolado -->
+      <a-entity id="menu3d" position="0 1.2 0" scale="1.8 1.8 1.8" rotation="-90 0 0" menu-suave>
 
-function spinWithSuspense() {
-  const n = Math.floor(Math.random()*6)+1;
-  showFullResult(n);
-}
+        <a-image id="boton1" src="1.png"
+                 position="0 0.8 0"
+                 width="1.8" height="0.5"
+                 transparent="true"
+                 class="clickable"
+                 material="shader: flat; transparent: true;">
+        </a-image>
 
-/* ========== Lógica principal AR fluida ========== */
-window.addEventListener('DOMContentLoaded',()=>{
+        <a-image id="boton2" src="2.png"
+                 position="0 0 0"
+                 width="1.8" height="0.5"
+                 transparent="true"
+                 class="clickable"
+                 material="shader: flat; transparent: true;">
+        </a-image>
 
-  const scene = document.getElementById('scene');
-  const marker = document.getElementById('marker');
-  const roulette = document.getElementById('rouletteGroup');
+        <a-image id="boton3" src="3OP.png"
+                 position="0 -0.8 0"
+                 width="1.8" height="0.5"
+                 transparent="true"
+                 class="clickable"
+                 material="shader: flat; transparent: true;">
+        </a-image>
 
-  const tmpPos = new THREE.Vector3();
-  const tmpQuat = new THREE.Quaternion();
-  const tmpScale = new THREE.Vector3();
+      </a-entity>
+    </a-marker>
 
-  let markerVisible = false;
+  </a-scene>
 
-  marker.addEventListener('markerFound', ()=> markerVisible = true);
-  marker.addEventListener('markerLost',  ()=> markerVisible = false);
+  <script>
+    const aviso = document.getElementById("aviso");
 
-  scene.addEventListener('renderstart', ()=>{
-    scene.addEventListener('frame', ()=>{
-      if (markerVisible) {
-        // Copia suave la transformación del marcador
-        marker.object3D.updateMatrixWorld(true);
-        marker.object3D.matrixWorld.decompose(tmpPos, tmpQuat, tmpScale);
+    function mostrarAviso(texto) {
+      aviso.innerText = texto;
+      aviso.style.display = "block";
+      setTimeout(() => { aviso.style.display = "none"; }, 2500);
+    }
 
-        roulette.object3D.position.lerp(tmpPos, 0.3);
-        roulette.object3D.quaternion.slerp(tmpQuat, 0.3);
-        roulette.object3D.scale.copy(tmpScale);
+    function animarBoton(boton) {
+      boton.emit("clickAnim");
+    }
+
+    /* -----------------------------
+       Componente: suavizado de movimiento
+       ----------------------------- */
+    AFRAME.registerComponent("menu-suave", {
+      tick: function () {
+        // Interpola suavemente para reducir vibración
+        const el = this.el;
+        const target = el.object3D;
+        if (!this.prevPos) this.prevPos = target.position.clone();
+
+        this.prevPos.lerp(target.position, 0.15); // 0.15 = suavizado
+        target.position.copy(this.prevPos);
       }
     });
-  });
 
-  // Click para girar
-  document.getElementById('rouletteSpinner').addEventListener('click', spinWithSuspense);
-  document.getElementById('mute').addEventListener('click',()=>{
-    muted = !muted;
-    document.getElementById('mute').textContent = muted ? '🔇 Sonido' : '🔊 Sonido';
-  });
+    /* -----------------------------
+       Componente: botones interactivos
+       ----------------------------- */
+    AFRAME.registerComponent("boton-interactivo", {
+      schema: {
+        mensaje: { type: "string", default: "" }
+      },
+      init: function() {
+        const el = this.el;
 
-  // Cierra resultado
-  document.getElementById('fullResult').addEventListener('click', e=>{
-    e.currentTarget.style.display='none';
-  });
-});
-</script>
+        // Animación visual
+        el.setAttribute("animation__pulse", {
+          property: "scale",
+          startEvents: "clickAnim",
+          from: "1 1 1",
+          to: "1.3 1.3 1.3",
+          dur: 150,
+          dir: "alternate"
+        });
+
+        el.setAttribute("animation__flash", {
+          property: "material.color",
+          startEvents: "clickAnim",
+          from: "#FFFFFF",
+          to: "#00FFFF",
+          dur: 200,
+          dir: "alternate"
+        });
+
+        // Evento de clic o tap
+        el.addEventListener("click", () => {
+          animarBoton(el);
+          mostrarAviso(this.data.mensaje);
+        });
+      }
+    });
+
+    /* -----------------------------
+       Inicialización
+       ----------------------------- */
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelector("#boton1").setAttribute("boton-interactivo", {
+        mensaje: "Has decidido CAMBIAR tu carta (-5% vida)"
+      });
+      document.querySelector("#boton2").setAttribute("boton-interactivo", {
+        mensaje: "Has aumentado tus probabilidades (-3% vida)"
+      });
+      document.querySelector("#boton3").setAttribute("boton-interactivo", {
+        mensaje: "Mantienes tu carta actual (vida igual)"
+      });
+    });
+  </script>
+
 </body>
 </html>
