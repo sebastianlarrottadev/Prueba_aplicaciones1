@@ -17,7 +17,7 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      background: rgba(0, 255, 255, 0.15);
+      background: rgb(0, 0, 0);
       border: 2px solid #00ffff;
       box-shadow: 0 0 15px #00ffff;
       color: #fff;
@@ -147,13 +147,13 @@
     document.addEventListener("DOMContentLoaded", () => {
       // Asignar mensajes a cada botón
       document.querySelector("#boton1").setAttribute("boton-interactivo", {
-        mensaje: "Has decidido CAMBIAR tu carta 🔁 (-5% vida)"
+        mensaje: "Has decidido CAMBIAR tu carta (-5% vida)"
       });
       document.querySelector("#boton2").setAttribute("boton-interactivo", {
-        mensaje: "Has aumentado tus probabilidades ✨ (-3% vida)"
+        mensaje: "Has aumentado tus probabilidades (-3% vida)"
       });
       document.querySelector("#boton3").setAttribute("boton-interactivo", {
-        mensaje: "Mantienes tu carta actual 🃏 (vida igual)"
+        mensaje: "Mantienes tu carta actual (vida igual)"
       });
     });
   </script>
