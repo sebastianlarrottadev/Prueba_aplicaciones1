@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Ruleta AR fluida — persistente</title>
+
+  <!-- A-Frame y AR.js -->
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.2/aframe/build/aframe-ar-nft.js"></script>
+
+  <style>
+    body { margin:0; overflow:hidden; font-family:sans-serif; }
+    #fullResult {
+      position:fixed; inset:0; background:rgba(0,0,0,0.7);
+      display:none; align-items:center; justify-content:center;
+      flex-direction:column; color:white; z-index:20;
+    }
+    #fullResult span { font-size:6em; font-weight:bold; }
+    #bigMsg { font-size:1.4em; margin-top:0.5em; }
+    #mute {
+      position:fixed; top:10px; left:10px;
+      background:#222; color:#fff; border:none;
+      padding:6px 10px; border-radius:6px; z-index:30;
+    }
+  </style>
+</head>
+<body>
+
+<button id="mute">🔊 Sonido</button>
+<div id="fullResult">
+  <span id="bigNumber"></span>
+  <div id="bigMsg"></div>
+</div>
+
+<a-scene
+  id="scene"
+  embedded
+  arjs="sourceType: webcam; debugUIEnabled: false;"
+  vr-mode-ui="enabled: false"
+>
+  <!-- Marcador base -->
+  <a-marker id="marker" preset="hiro"></a-marker>
+
+  <!-- Cámara -->
+  <a-entity camera></a-entity>
+
+  <!-- Grupo ruleta (fuera del marcador) -->
+  <a-entity id="rouletteGroup" position="0 0 0" rotation="0 0 0" scale="1 1 1">
+    <a-cylinder id="rouletteSpinner" height="0.05" radius="1" color="#fff"
+                rotation="90 0 0" segments-radial="64">
+      <a-animation
+        attribute="rotation"
+        to="90 360 0"
+        dur="5000"
+        easing="linear"
+        repeat="indefinite">
+      </a-animation>
+    </a-cylinder>
+  </a-entity>
+</a-scene>
+
+<script>
+/* ========================== */
+let muted = false;
+
+function showFullResult(n) {
+  const overlay = document.getElementById('fullResult');
+  document.getElementById('bigNumber').textContent = n;
+  document.getElementById('bigMsg').textContent = 'Mueve ' + n + ' casillas en el mapa';
+  overlay.style.display = 'flex';
+  overlay.animate([{opacity:0},{opacity:1}],{duration:250,easing:'ease-out'});
+}
+
+function spinWithSuspense() {
+  const n = Math.floor(Math.random()*6)+1;
+  showFullResult(n);
+}
+
+/* ========== Lógica principal AR fluida ========== */
+window.addEventListener('DOMContentLoaded',()=>{
+
+  const scene = document.getElementById('scene');
+  const marker = document.getElementById('marker');
+  const roulette = document.getElementById('rouletteGroup');
+
+  const tmpPos = new THREE.Vector3();
+  const tmpQuat = new THREE.Quaternion();
+  const tmpScale = new THREE.Vector3();
+
+  let markerVisible = false;
+
+  marker.addEventListener('markerFound', ()=> markerVisible = true);
+  marker.addEventListener('markerLost',  ()=> markerVisible = false);
+
+  scene.addEventListener('renderstart', ()=>{
+    scene.addEventListener('frame', ()=>{
+      if (markerVisible) {
+        // Copia suave la transformación del marcador
+        marker.object3D.updateMatrixWorld(true);
+        marker.object3D.matrixWorld.decompose(tmpPos, tmpQuat, tmpScale);
+
+        roulette.object3D.position.lerp(tmpPos, 0.3);
+        roulette.object3D.quaternion.slerp(tmpQuat, 0.3);
+        roulette.object3D.scale.copy(tmpScale);
+      }
+    });
+  });
+
+  // Click para girar
+  document.getElementById('rouletteSpinner').addEventListener('click', spinWithSuspense);
+  document.getElementById('mute').addEventListener('click',()=>{
+    muted = !muted;
+    document.getElementById('mute').textContent = muted ? '🔇 Sonido' : '🔊 Sonido';
+  });
+
+  // Cierra resultado
+  document.getElementById('fullResult').addEventListener('click', e=>{
+    e.currentTarget.style.display='none';
+  });
+});
+</script>
+</body>
+</html>

@@ -573,49 +573,124 @@
   </script>
 
   <script>
-    /* ===== Overlay & Bootstrap ===== */
-    function showFullResult(n){
-      const overlay = document.getElementById('fullResult');
-      const bigN    = document.getElementById('bigNumber');
-      const bigMsg  = document.getElementById('bigMsg');
-      bigN.textContent = n;
-      bigMsg.textContent = 'Mueve ' + n + ' casillas en el mapa';
-      overlay.style.display = 'flex';
-      overlay.animate([{opacity:0},{opacity:1}],{duration:220, easing:'ease-out'});
-      startFX();
+/* ===== Overlay & Bootstrap (versión: ghost-clone para evitar jitter) ===== */
+function showFullResult(n){
+  const overlay = document.getElementById('fullResult');
+  const bigN    = document.getElementById('bigNumber');
+  const bigMsg  = document.getElementById('bigMsg');
+  bigN.textContent = n;
+  bigMsg.textContent = 'Mueve ' + n + ' casillas en el mapa';
+  overlay.style.display = 'flex';
+  overlay.animate([{opacity:0},{opacity:1}],{duration:220, easing:'ease-out'});
+  startFX();
+}
+
+window.addEventListener('DOMContentLoaded',()=>{
+
+  const scene = document.getElementById('scene');
+  const spinner = document.getElementById('rouletteSpinner');
+  const mk = document.getElementById('mk');
+  const rouletteGroup = document.getElementById('rouletteGroup');
+
+  // --- Crear CLON "fantasma" fuera del marcador ---
+  const ghostGroup = rouletteGroup.cloneNode(true);
+  ghostGroup.setAttribute('id','ghostGroup');
+  // quitamos el atributo marker-parent accidental (por si lo tiene)
+  // y lo pegamos directamente en la escena (raíz)
+  scene.appendChild(ghostGroup);
+  // Acceso a object3D
+  // Desactivar actualizaciones automáticas: usaremos matrices manuales
+  ghostGroup.object3D.matrixAutoUpdate = false;
+  ghostGroup.object3D.visible = false;
+
+  // Si el clon contiene canvas/materiales que necesitan update, re-aplicamos textura/clamp
+  setTimeout(()=>{ // pequeña espera para que a-frame inicialice componentes
+    const diskOriginal = document.getElementById('rouletteDisk');
+    const diskGhost = ghostGroup.querySelector('#rouletteDisk');
+    if (diskOriginal && diskGhost && diskOriginal.components && diskOriginal.components.material) {
+      const matOrig = diskOriginal.components.material.material;
+      const matGhost = diskGhost.components && diskGhost.components.material && diskGhost.components.material.material;
+      if (matOrig && matGhost && matOrig.map && matGhost.map && window.THREE) {
+        matGhost.map = matOrig.map;
+        matGhost.map.wrapS = THREE.ClampToEdgeWrapping;
+        matGhost.map.wrapT = THREE.ClampToEdgeWrapping;
+        matGhost.map.needsUpdate = true;
+      }
     }
+  }, 200);
 
-    window.addEventListener('DOMContentLoaded',()=>{
-      const scene=document.getElementById('scene');
-      const spinner=document.getElementById('rouletteSpinner');
-      const mk=document.getElementById('mk');
+  // Variables temporales para decomponer matrices
+  const tmpPos = new THREE.Vector3();
+  const tmpQuat = new THREE.Quaternion();
+  const tmpScale = new THREE.Vector3();
 
-      scene.addEventListener('loaded',()=>{
-        drawRoulette6();
-        setTimeout(drawRoulette6,100);
-        setTimeout(clampRouletteTexture,150); // asegura clamp tras crear material
-      });
+  // Inicial bootstrap
+  scene.addEventListener('loaded',()=>{
+    drawRoulette6();
+    setTimeout(drawRoulette6,100);
+    setTimeout(clampRouletteTexture,150); // asegura clamp tras crear material
+  });
 
-      spinner.addEventListener('click',spinWithSuspense);
-      spinner.addEventListener('touchstart',spinWithSuspense,{passive:true});
+  // Eventos de giro (solo en la ruleta original bajo el marcador)
+  spinner.addEventListener('click', spinWithSuspense);
+  spinner.addEventListener('touchstart', spinWithSuspense, {passive:true});
 
-      const muteBtn=document.getElementById('mute');
-      muteBtn.addEventListener('click',()=>{ muted=!muted; muteBtn.textContent=muted?'🔇 Sonido':'🔊 Sonido'; });
+  const muteBtn = document.getElementById('mute');
+  muteBtn.addEventListener('click',()=>{
+    muted = !muted;
+    muteBtn.textContent = muted ? '🔇 Sonido' : '🔊 Sonido';
+  });
 
-      document.getElementById('fullResult').addEventListener('click', (e)=>{
-        e.currentTarget.style.display='none';
-        stopFX();
-      }, {passive:true});
+  document.getElementById('fullResult').addEventListener('click',(e)=>{
+    e.currentTarget.style.display='none';
+    stopFX();
+  }, {passive:true});
 
-      window.addEventListener('orientationchange', ()=>{
-        if (document.getElementById('fullResult').style.display !== 'none') {
-          requestAnimationFrame(()=>{ resizeFX(); });
-        }
-      });
+  window.addEventListener('orientationchange',()=>{
+    if (document.getElementById('fullResult').style.display !== 'none') {
+      requestAnimationFrame(()=>{ resizeFX(); });
+    }
+  });
 
-      mk.addEventListener('markerFound', ()=>console.log('[AR] Hiro DETECTADO'));
-      mk.addEventListener('markerLost',  ()=>console.log('[AR] Hiro PERDIDO'));
-    });
-  </script>
+  // --- Lógica: usar CLON como snapshot cuando se pierde el marcador ---
+  mk.addEventListener('markerFound', ()=>{
+    console.log('[AR] Hiro DETECTADO');
+    // Mostrar la ruleta original (controlada por AR.js) y ocultar la copia
+    rouletteGroup.object3D.visible = true;
+    ghostGroup.object3D.visible = false;
+    // Reactivar auto-update por si lo habíamos desactivado (seguro)
+    rouletteGroup.object3D.matrixAutoUpdate = true;
+  });
+
+  mk.addEventListener('markerLost', ()=>{
+    console.log('[AR] Hiro PERDIDO — creando snapshot en ghost');
+
+    // Tomar la matriz mundial de la ruleta real y copiarla al ghost
+    // Usamos matrixWorld para obtener la transformación absoluta de la entidad en el espacio del mundo
+    const worldMat = rouletteGroup.object3D.matrixWorld;
+
+    // Aplicar la matriz al ghost y descomponerla (sólo una vez)
+    ghostGroup.object3D.matrix.copy(worldMat);
+    ghostGroup.object3D.matrix.decompose(tmpPos, tmpQuat, tmpScale);
+
+    ghostGroup.object3D.position.copy(tmpPos);
+    ghostGroup.object3D.quaternion.copy(tmpQuat);
+    ghostGroup.object3D.scale.copy(tmpScale);
+
+    // Importante: desactivar matrixAutoUpdate (para evitar que A-Frame/ThreeJS sobrescriba)
+    ghostGroup.object3D.matrixAutoUpdate = false;
+    ghostGroup.object3D.visible = true;
+
+    // Ocultar la ruleta original (AR.js puede volver a ocultarla/mostrarla cuando recupere)
+    rouletteGroup.object3D.visible = false;
+  });
+
+  // Nota: NO hacemos sync por frame para evitar jitter. El ghost queda con la transformación
+  // "congelada" hasta que el marcador vuelva a ser detectado.
+
+});
+</script>
+
+
 </body>
 </html>
