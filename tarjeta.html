@@ -1,29 +1,110 @@
-      <!doctype html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tarjeta GLB AR — Giro lento</title>
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.js"></script>
-  <style> body { margin:0; font-family: system-ui, sans-serif; } </style>
-</head>
-<body>
-  <a-scene embedded vr-mode-ui="enabled:false" arjs="sourceType: webcam; detectionMode: mono; debugUIEnabled: false">
-    <a-entity light="type: ambient; intensity: 0.85"></a-entity>
-    <a-entity light="type: directional; intensity: 1.2" position="1 1 0"></a-entity>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>MindAR — Auto Start</title>
 
-    <a-entity camera></a-entity>
+    <!-- A-Frame y MindAR -->
+    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.3/dist/mindar-image-aframe.prod.js"></script>
 
-    <a-marker preset="hiro">
-      <!-- Reemplaza la ruta del GLB si hace falta -->
-      <a-entity gltf-model="url(./ACCION_PRUEBA_ESCANEABLE.glb)"
-                position="0 0 0"
-                scale="0.5 0.5 0.5"
-                animation-mixer
-                animation__rotate="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear">
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        height: 100%;
+        background: #000;
+      }
+
+      #overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        z-index: 10;
+        text-align: center;
+        padding: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="overlay">Activando cámara... si no inicia, toca la pantalla una vez.</div>
+
+    <a-scene
+      mindar-image="imageTargetSrc: ./targets.mind;"
+      embedded
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+      renderer="colorManagement: true, physicallyCorrectLights"
+      loading-screen="enabled: false"
+    >
+      <a-camera position="0 0 0" look-controls="enabled: false" rotation-reader></a-camera>
+
+      <!-- Targets de ejemplo -->
+      <a-entity mindar-image-target="targetIndex: 0" id="logo0">
+        <a-text value="NVIDIA" color="#00ffcc" align="center" position="0 0 -0.5" scale="1 1 1"></a-text>
       </a-entity>
-    </a-marker>
-  </a-scene>
-</body>
+
+      <a-entity mindar-image-target="targetIndex: 1" id="logo1">
+        <a-text value="APPLE" color="#ffcc00" align="center" position="0 0 -0.5" scale="1 1 1"></a-text>
+      </a-entity>
+
+      <a-entity mindar-image-target="targetIndex: 2" id="logo2">
+        <a-text value="META" color="#ff66cc" align="center" position="0 0 -0.5" scale="1 1 1"></a-text>
+      </a-entity>
+    </a-scene>
+
+    <script>
+      const sceneEl = document.querySelector("a-scene");
+      const overlay = document.getElementById("overlay");
+
+      async function startAR() {
+        try {
+          // En iOS se requiere permiso explícito del usuario
+          if (
+            typeof DeviceOrientationEvent !== "undefined" &&
+            typeof DeviceOrientationEvent.requestPermission === "function"
+          ) {
+            const response = await DeviceOrientationEvent.requestPermission();
+            if (response !== "granted") {
+              overlay.innerHTML = "Toca la pantalla para permitir el acceso a la cámara 📸";
+              document.body.addEventListener("click", startAR, { once: true });
+              return;
+            }
+          }
+
+          await sceneEl.components["mindar-image"].start();
+          overlay.style.display = "none";
+          console.log("✅ Cámara iniciada correctamente");
+        } catch (err) {
+          console.error("Error al iniciar MindAR:", err);
+          overlay.innerHTML = "No se pudo acceder a la cámara. Revisa los permisos.";
+        }
+      }
+
+      // Intentar iniciar automáticamente
+      window.addEventListener("load", () => {
+        startAR();
+      });
+
+      // Mantener visibles los textos aunque se pierda el marcador
+      const targets = document.querySelectorAll("[mindar-image-target]");
+      targets.forEach((target) => {
+        target.addEventListener("targetFound", () => {
+          console.log("Marcador detectado:", target.id);
+          target.setAttribute("visible", true);
+        });
+        target.addEventListener("targetLost", () => {
+          target.setAttribute("visible", true);
+        });
+      });
+    </script>
+  </body>
 </html>
