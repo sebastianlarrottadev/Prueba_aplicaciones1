@@ -3,159 +3,217 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Menú Futurista AR — Selección precisa</title>
+  <title>Opciones de tarjeta</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
 
-  <!-- Librerías -->
-  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@3.4.0/aframe/build/aframe-ar.js"></script>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  <style>
-    body { margin: 0; overflow: hidden; background: black; }
+    body {
+      background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%);
+      color: #00ffcc;
+      font-family: 'Orbitron', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 25px;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
 
-    #aviso {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgb(0, 64, 107);
-      border: 2px solid #00ffff;
-      box-shadow: 0 0 15px #00ffff;
-      color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      font-size: 1.3em;
-      text-align: center;
-      padding: 20px 30px;
-      border-radius: 10px;
-      display: none;
-      z-index: 999;
-      animation: glow 1.5s ease-in-out infinite alternate;
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(0, 255, 204, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(0, 153, 255, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 8px;
+      color: #00ffcc;
+      text-shadow: 
+        0 0 10px #00ffcc,
+        0 0 20px #00ffcc,
+        0 0 40px #00ffcc,
+        0 0 80px rgba(0, 255, 204, 0.5);
+      margin-bottom: 20px;
+      animation: glow 2s ease-in-out infinite alternate;
+      position: relative;
+      z-index: 1;
     }
 
     @keyframes glow {
-      from { box-shadow: 0 0 10px #00ffff; }
-      to { box-shadow: 0 0 25px #00ffff; }
+      from {
+        text-shadow: 
+          0 0 10px #00ffcc,
+          0 0 20px #00ffcc,
+          0 0 40px #00ffcc;
+      }
+      to {
+        text-shadow: 
+          0 0 20px #00ffcc,
+          0 0 30px #00ffcc,
+          0 0 60px #00ffcc,
+          0 0 100px rgba(0, 255, 204, 0.8);
+      }
+    }
+
+    button {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(10px);
+      color: #e6eef6;
+      border: 2px solid;
+      border-radius: 15px;
+      padding: 20px 30px;
+      font-size: 16px;
+      font-family: 'Orbitron', monospace;
+      cursor: pointer;
+      width: 100%;
+      max-width: 500px;
+      text-align: left;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    button:hover::before {
+      width: 500px;
+      height: 500px;
+    }
+
+    button:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    }
+
+    button small {
+      display: block;
+      margin-top: 8px;
+      font-size: 13px;
+      opacity: 0.8;
+      font-weight: 400;
+    }
+
+    .danger {
+      border-color: #ff1100;
+      color: #ff7070;
+    }
+
+    .danger:hover {
+      box-shadow: 
+        0 0 20px rgba(255, 0, 128, 0.5),
+        0 10px 40px rgba(0, 0, 0, 0.5);
+      border-color: #ff3399;
+    }
+
+    .info {
+      border-color: #00d9ff;
+      color: #00d9ff;
+    }
+
+    .info:hover {
+      box-shadow: 
+        0 0 20px rgba(0, 217, 255, 0.5),
+        0 10px 40px rgba(0, 0, 0, 0.5);
+      border-color: #33e0ff;
+    }
+
+    .success {
+      border-color: #00ffcc;
+      color: #00ffcc;
+    }
+
+    .success:hover {
+      box-shadow: 
+        0 0 20px rgba(0, 255, 204, 0.5),
+        0 10px 40px rgba(0, 0, 0, 0.5);
+      border-color: #33ffdd;
+    }
+
+    .feedback {
+      font-size: 18px;
+      text-align: center;
+      margin-top: 20px;
+      min-height: 40px;
+      text-shadow: 0 0 10px currentColor;
+      animation: fade 0.3s ease-in-out;
+    }
+
+    @keyframes fade {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 1.8rem;
+        letter-spacing: 4px;
+      }
+      
+      button {
+        font-size: 14px;
+        padding: 15px 20px;
+      }
     }
   </style>
 </head>
 <body>
 
-  <div id="aviso"></div>
+  <h1>Opciones de Tarjeta</h1>
 
-  <a-scene
-    embedded
-    vr-mode-ui="enabled: false"
-    arjs="sourceType: webcam; detectionMode: mono; trackingMethod: best; debugUIEnabled: false">
+  <button class="danger" onclick="mostrarMensaje('Perdiste 5 puntos de salud mental 😵‍💫', '#ff4d4d')">
+    1. Cambiar tarjeta por una mejor<br>
+    <small>Si la cambias, se te disminuye 5 puntos de salud mental.</small>
+  </button>
 
-    <!-- Luces -->
-    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
-    <a-entity light="type: directional; intensity: 1.2" position="1 1 1"></a-entity>
+  <button class="info" onclick="mostrarMensaje('Perdiste 3 puntos de salud mental 🧠', '#00d9ff')">
+    2. Aumenta la probabilidad en un 30% que te toque algo mejor<br>
+    <small>Si la cambias, se te disminuye 3 puntos de salud mental.</small>
+  </button>
 
-    <!-- Cámara con cursor raycaster integrado -->
-    <a-entity id="cam"
-              camera
-              cursor="fuse: false; rayOrigin: mouse"
-              raycaster="objects: .clickable; far: 10;">
-    </a-entity>
+  <button class="success" onclick="mostrarMensaje('¡Excelente elección! Ganas +2 de salud mental 💪', '#00ffcc')">
+    3. Quedarme con esta tarjeta<br>
+    <small>Te felicita, no afecta tu salud mental y te agrega 2 puntos.</small>
+  </button>
 
-    <!-- Marcador -->
-    <a-marker type="pattern" preset="hiro"
-      smooth="true"
-      smoothCount="10"
-      smoothTolerance="0.01"
-      smoothThreshold="5">
-
-      <!-- Menú -->
-      <a-entity id="menu3d" position="0 1.2 0" scale="2 2 2" rotation="-90 0 0">
-
-        <a-image id="boton1" src="1.png"
-                 position="0 0.8 0"
-                 width="1.8" height="0.5"
-                 transparent="true"
-                 class="clickable"
-                 material="shader: flat; transparent: true;">
-        </a-image>
-
-        <a-image id="boton2" src="2.png"
-                 position="0 0 0"
-                 width="1.8" height="0.5"
-                 transparent="true"
-                 class="clickable"
-                 material="shader: flat; transparent: true;">
-        </a-image>
-
-        <a-image id="boton3" src="3OP.png"
-                 position="0 -0.8 0"
-                 width="1.8" height="0.5"
-                 transparent="true"
-                 class="clickable"
-                 material="shader: flat; transparent: true;">
-        </a-image>
-
-      </a-entity>
-    </a-marker>
-
-  </a-scene>
+  <div id="mensaje" class="feedback"></div>
 
   <script>
-    const aviso = document.getElementById("aviso");
-
-    function mostrarAviso(texto) {
-      aviso.innerText = texto;
-      aviso.style.display = "block";
-      setTimeout(() => { aviso.style.display = "none"; }, 2500);
+    function mostrarMensaje(texto, color) {
+      const mensaje = document.getElementById('mensaje');
+      mensaje.textContent = texto;
+      mensaje.style.color = color;
     }
-
-    function animarBoton(boton) {
-      boton.emit("clickAnim");
-    }
-
-    AFRAME.registerComponent("boton-interactivo", {
-      schema: {
-        mensaje: { type: "string", default: "" }
-      },
-      init: function() {
-        const el = this.el;
-
-        // Animación de respuesta visual
-        el.setAttribute("animation__pulse", {
-          property: "scale",
-          startEvents: "clickAnim",
-          from: "1 1 1",
-          to: "1.3 1.3 1.3",
-          dur: 150,
-          dir: "alternate",
-          loop: false
-        });
-
-        el.setAttribute("animation__flash", {
-          property: "material.color",
-          startEvents: "clickAnim",
-          from: "#FFFFFF",
-          to: "#00FFFF",
-          dur: 150,
-          dir: "alternate"
-        });
-
-        // Manejo de clic o toque
-        el.addEventListener("click", () => {
-          animarBoton(el);
-          mostrarAviso(this.data.mensaje);
-        });
-      }
-    });
-
-    document.addEventListener("DOMContentLoaded", () => {
-      // Asignar mensajes a cada botón
-      document.querySelector("#boton1").setAttribute("boton-interactivo", {
-        mensaje: "Has decidido CAMBIAR tu carta (-5% vida)"
-      });
-      document.querySelector("#boton2").setAttribute("boton-interactivo", {
-        mensaje: "Has aumentado tus probabilidades (-3% vida)"
-      });
-      document.querySelector("#boton3").setAttribute("boton-interactivo", {
-        mensaje: "Mantienes tu carta actual (vida igual)"
-      });
-    });
   </script>
 
 </body>
