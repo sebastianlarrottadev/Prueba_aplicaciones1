@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AR Compras Divertidas</title>
+
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <!-- AR.js -->
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@master/aframe/build/aframe-ar.js"></script>
+  <!-- Animation Mixer -->
+  <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+
+  <style>
+    body { margin: 0; overflow: hidden; font-family: system-ui, sans-serif; background: #000; }
+    #info {
+      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.6); color: white; padding: 8px 16px;
+      border-radius: 8px; z-index: 10;
+    }
+    /* Ventana emergente */
+    #overlay {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.85); color: #fff; padding: 16px 20px;
+      border-radius: 12px; display: none; text-align: center;
+      box-shadow: 0 0 15px rgba(255,255,255,0.2); z-index: 15;
+      width: 90%; max-width: 320px;
+    }
+    #overlay button {
+      margin: 10px 8px 0; padding: 8px 14px; border: none; border-radius: 6px;
+      font-weight: 600; cursor: pointer;
+    }
+    #btnYes { background: #28a745; color: white; }
+    #btnNo { background: #dc3545; color: white; }
+  </style>
+</head>
+
+<body>
+  <div id="info">Apunta la cámara a un marcador</div>
+
+  <!-- Ventana emergente -->
+  <div id="overlay">
+    <div id="question">¿Quieres comprar este producto?</div>
+    <div>
+      <button id="btnYes">Sí, comprar</button>
+      <button id="btnNo">No, gracias</button>
+    </div>
+    <div id="result" style="margin-top:10px; font-weight:bold;"></div>
+  </div>
+
+  <a-scene
+    embedded
+    vr-mode-ui="enabled: false"
+    renderer="antialias: true; colorManagement: true"
+    arjs="sourceType: webcam; debugUIEnabled: false;"
+  >
+    <a-assets>
+      <a-asset-item id="meta" src="./models/meta.glb"></a-asset-item>
+      <a-asset-item id="alphabet" src="./models/alphabet.glb"></a-asset-item>
+      <a-asset-item id="netflix" src="./models/netflix.glb"></a-asset-item>
+      <a-asset-item id="nike" src="./models/nike.glb"></a-asset-item>
+      <a-asset-item id="mcdonalds" src="./models/mcdonalds.glb"></a-asset-item>
+    </a-assets>
+
+    <a-entity camera></a-entity>
+
+    <!-- MARCADORES -->
+    <a-marker type="pattern" url="./targets/marcadormeta.patt" id="marker-meta">
+      <a-entity gltf-model="#meta" scale="0.5 0.5 0.5" animation-mixer visible="false"></a-entity>
+    </a-marker>
+
+    <a-marker type="pattern" url="./targets/marcadoralphabet.patt" id="marker-alphabet">
+      <a-entity gltf-model="#alphabet" scale="0.5 0.5 0.5" animation-mixer visible="false"></a-entity>
+    </a-marker>
+
+    <a-marker type="pattern" url="./targets/marcadornetflix.patt" id="marker-netflix">
+      <a-entity gltf-model="#netflix" scale="0.5 0.5 0.5" animation-mixer visible="false"></a-entity>
+    </a-marker>
+
+    <a-marker type="pattern" url="./targets/marcadornike.patt" id="marker-nike">
+      <a-entity gltf-model="#nike" scale="0.5 0.5 0.5" animation-mixer visible="false"></a-entity>
+    </a-marker>
+
+    <a-marker type="pattern" url="./targets/marcadormcdonalds.patt" id="marker-mcdonalds">
+      <a-entity gltf-model="#mcdonalds" scale="0.5 0.5 0.5" animation-mixer visible="false"></a-entity>
+    </a-marker>
+
+    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+    <a-entity light="type: directional; intensity: 0.8" position="1 2 1"></a-entity>
+  </a-scene>
+
+  <script>
+    const overlay = document.getElementById("overlay");
+    const question = document.getElementById("question");
+    const result = document.getElementById("result");
+    const btnYes = document.getElementById("btnYes");
+    const btnNo = document.getElementById("btnNo");
+
+    const markers = [
+      { id: "marker-meta", name: "Meta" },
+      { id: "marker-alphabet", name: "Alphabet" },
+      { id: "marker-netflix", name: "Netflix" },
+      { id: "marker-nike", name: "Nike" },
+      { id: "marker-mcdonalds", name: "McDonald’s" }
+    ];
+
+    let currentBrand = null;
+
+    markers.forEach(({ id, name }) => {
+      const marker = document.getElementById(id);
+      const model = marker.querySelector("a-entity");
+
+      marker.addEventListener("markerFound", () => {
+        console.log(`✅ Marcador detectado: ${name}`);
+        model.setAttribute("visible", "true");
+        currentBrand = name;
+
+        // Mostrar overlay
+        question.textContent = `¿Quieres comprar ${name}?`;
+        result.textContent = "";
+        overlay.style.display = "block";
+      });
+
+      marker.addEventListener("markerLost", () => {
+        console.log(`❌ Marcador perdido: ${name}`);
+        model.setAttribute("visible", "false");
+        overlay.style.display = "none";
+      });
+    });
+
+    // Botones
+    btnYes.addEventListener("click", () => {
+      result.textContent = "💸 Has hecho una compra impulsiva!";
+      setTimeout(() => { overlay.style.display = "none"; }, 2000);
+    });
+
+    btnNo.addEventListener("click", () => {
+      overlay.style.display = "none";
+    });
+  </script>
+</body>
+</html>
