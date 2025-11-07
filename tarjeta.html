@@ -11,26 +11,111 @@
   <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
 
   <style>
-    body { margin: 0; overflow: hidden; font-family: system-ui, sans-serif; background: #000; }
-    #brandInfo {
-      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-      background: rgba(0,0,0,0.7); color: #fff; padding: 10px 20px;
-      border-radius: 8px; font-weight: bold; display: none; z-index: 15;
-    }
-    #overlay {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: rgba(0,0,0,0.85); color: #fff; padding: 16px 20px;
-      border-radius: 12px; display: none; text-align: center;
-      box-shadow: 0 0 15px rgba(255,255,255,0.2); z-index: 15;
-      width: 90%; max-width: 320px;
-    }
-    #overlay button {
-      margin: 10px 8px 0; padding: 8px 14px; border: none;
-      border-radius: 6px; font-weight: 600; cursor: pointer;
-    }
-    #btnYes { background: #28a745; color: white; }
-    #btnNo { background: #dc3545; color: white; }
-  </style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+  body { 
+    margin: 0; 
+    overflow: hidden; 
+    font-family: 'Orbitron', sans-serif; 
+    background: radial-gradient(circle at center, #081229 0%, #050b18 100%);
+    color: #fff;
+  }
+
+  #brandInfo {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 255, 255, 0.1);
+    color: #00fff7;
+    padding: 12px 24px;
+    border: 1px solid #00fff7;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+    text-shadow: 0 0 12px #00fff7;
+    display: none;
+    z-index: 15;
+  }
+
+  #overlay {
+    position: fixed;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(8, 18, 41, 0.9);
+    padding: 20px 24px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+    z-index: 15;
+    width: 90%;
+    max-width: 400px;
+    border: 2px solid #00fff7;
+    display: none;
+    animation: fadeIn 0.6s ease-out;
+  }
+
+  #question {
+    font-size: 1.1rem;
+    color: #00fff7;
+    margin-bottom: 12px;
+    text-shadow: 0 0 10px #00fff7;
+  }
+
+  #overlay button {
+    margin: 8px 10px;
+    padding: 10px 16px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    font-family: 'Orbitron', sans-serif;
+  }
+
+  #btnYes {
+    background: transparent;
+    color: #00fff7;
+    border-color: #00fff7;
+    box-shadow: 0 0 10px #00fff7;
+  }
+
+  #btnYes:hover {
+    background: #00fff7;
+    color: #081229;
+    box-shadow: 0 0 20px #00fff7;
+  }
+
+  #btnNo {
+    background: transparent;
+    color: #ff3c3c;
+    border-color: #ff3c3c;
+    box-shadow: 0 0 10px #ff3c3c;
+  }
+
+  #btnNo:hover {
+    background: #ff3c3c;
+    color: #fff;
+    box-shadow: 0 0 20px #ff3c3c;
+  }
+
+  #result {
+    margin-top: 12px;
+    font-weight: bold;
+    color: #fff;
+    text-shadow: 0 0 8px #00fff7;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, 20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
+</style>
+
 </head>
 
 <body>
@@ -64,19 +149,19 @@
       <a-entity id="model-meta" gltf-model="#meta" scale="0.5 0.5 0.5" visible="true" animation-mixer></a-entity>
     </a-marker>
 
-    <a-marker type="pattern" id="marker-alphabet" url="./targets/marcadoralphabet.patt" emitevents="true">
+    <a-marker type="pattern" id="marker-alphabet" url="./targets/aalphabet.patt" emitevents="true">
       <a-entity id="model-alphabet" gltf-model="#alphabet" scale="0.5 0.5 0.5" visible="true" animation-mixer></a-entity>
     </a-marker>
 
-    <a-marker type="pattern" id="marker-netflix" url="./targets/marcadornetflix.patt" emitevents="true">
+    <a-marker type="pattern" id="marker-netflix" url="./targets/netflix.patt" emitevents="true">
       <a-entity id="model-netflix" gltf-model="#netflix" scale="0.5 0.5 0.5" visible="true" animation-mixer></a-entity>
     </a-marker>
 
-    <a-marker type="pattern" id="marker-nike" url="./targets/marcadornike.patt" emitevents="true">
+    <a-marker type="pattern" id="marker-nike" url="./targets/nike.patt" emitevents="true">
       <a-entity id="model-nike" gltf-model="#nike" scale="0.5 0.5 0.5" visible="true" animation-mixer></a-entity>
     </a-marker>
 
-    <a-marker type="pattern" id="marker-mcdonalds" url="./targets/marcadormcdonalds.patt" emitevents="true">
+    <a-marker type="pattern" id="marker-mcdonalds" url="./targets/mcdonalds.patt" emitevents="true">
       <a-entity id="model-mcdonalds" gltf-model="#mcdonalds" scale="0.5 0.5 0.5" visible="true" animation-mixer></a-entity>
     </a-marker>
 
