@@ -1,119 +1,142 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Prueba de Marcadores — MindAR</title>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>AR Compras Divertidas</title>
 
-    <!-- A-Frame + MindAR -->
-    <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.2/dist/mindar-image-aframe.prod.js"></script>
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/AR-js-org/AR.js@master/aframe/build/aframe-ar.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
 
-    <style>
-      body {
-        margin: 0;
-        overflow: hidden;
-        background: #000;
-      }
+  <style>
+    body { margin: 0; overflow: hidden; font-family: system-ui, sans-serif; background: #000; }
+    #brandInfo {
+      position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.7); color: #fff; padding: 10px 20px;
+      border-radius: 8px; font-weight: bold; display: none; z-index: 15;
+    }
+    #overlay {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.85); color: #fff; padding: 16px 20px;
+      border-radius: 12px; display: none; text-align: center;
+      box-shadow: 0 0 15px rgba(255,255,255,0.2); z-index: 15;
+      width: 90%; max-width: 320px;
+    }
+    #overlay button {
+      margin: 10px 8px 0; padding: 8px 14px; border: none;
+      border-radius: 6px; font-weight: 600; cursor: pointer;
+    }
+    #btnYes { background: #28a745; color: white; }
+    #btnNo { background: #dc3545; color: white; }
+  </style>
+</head>
 
-      #info {
-        position: absolute;
-        top: 15px;
-        left: 50%;
-        transform: translateX(-50%);
-        background: rgba(0, 0, 0, 0.5);
-        color: white;
-        font-family: sans-serif;
-        padding: 10px 18px;
-        border-radius: 8px;
-        font-size: 16px;
-        text-align: center;
-      }
-    </style>
-  </head>
+<body>
+  <div id="brandInfo">Apunta la cámara a un marcador</div>
 
-  <body>
-    <div id="info">Esperando marcador...</div>
+  <div id="overlay">
+    <div id="question">¿Quieres comprar este producto?</div>
+    <div>
+      <button id="btnYes">Sí, comprar</button>
+      <button id="btnNo">No, gracias</button>
+    </div>
+    <div id="result" style="margin-top:10px; font-weight:bold;"></div>
+  </div>
 
-    <a-scene
-      mindar-image="imageTargetSrc: ./targets/target.mind;"
-      color-space="sRGB"
-      renderer="colorManagement: true, physicallyCorrectLights"
-      embedded
-      vr-mode-ui="enabled: false"
-      device-orientation-permission-ui="enabled: false"
-    >
-      <!-- Cámara -->
-      <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+  <a-scene embedded vr-mode-ui="enabled: false"
+           renderer="antialias: true; colorManagement: true"
+           arjs="sourceType: webcam; debugUIEnabled: false;">
+    <a-assets>
+      <a-asset-item id="meta" src="./models/meta.glb"></a-asset-item>
+      <a-asset-item id="alphabet" src="./models/alphabet.glb"></a-asset-item>
+      <a-asset-item id="netflix" src="./models/netflix.glb"></a-asset-item>
+      <a-asset-item id="nike" src="./models/nike.glb"></a-asset-item>
+      <a-asset-item id="mcdonalds" src="./models/mcdonalds.glb"></a-asset-item>
+      <a-asset-item id="apple" src="./models/apple.glb"></a-asset-item>
+    </a-assets>
 
-      <!-- Luz ambiente -->
-      <a-entity light="type: ambient; intensity: 1"></a-entity>
+    <a-entity camera></a-entity>
 
-      <!-- Texto 3D que se muestra sobre el marcador -->
-      <a-entity id="textoMarcador" visible="false">
-        <a-text
-          id="textoAR"
-          value=""
-          color="#00ff00"
-          align="center"
-          position="0 0 -1"
-          scale="1.8 1.8 1.8"
-        ></a-text>
-      </a-entity>
+    <!-- MARCADORES -->
+    <a-marker type="pattern" id="marker-meta" url="./targets/marcadormeta.patt">
+      <a-entity id="model-meta" gltf-model="#meta" scale="0.5 0.5 0.5" visible="false" animation-mixer></a-entity>
+    </a-marker>
 
-      <!-- Targets (cada marcador del archivo .mind) -->
-      <a-entity mindar-image-target="targetIndex: 0" id="target0"></a-entity>
-      <a-entity mindar-image-target="targetIndex: 1" id="target1"></a-entity>
-      <a-entity mindar-image-target="targetIndex: 2" id="target2"></a-entity>
-      <a-entity mindar-image-target="targetIndex: 3" id="target3"></a-entity>
-      <a-entity mindar-image-target="targetIndex: 4" id="target4"></a-entity>
-      <a-entity mindar-image-target="targetIndex: 5" id="target5"></a-entity>
-    </a-scene>
+    <a-marker type="pattern" id="marker-alphabet" url="./targets/marcadoralphabet.patt">
+      <a-entity id="model-alphabet" gltf-model="#alphabet" scale="0.5 0.5 0.5" visible="false" animation-mixer></a-entity>
+    </a-marker>
 
-    <script>
-      const info = document.getElementById("info");
-      const textoMarcador = document.getElementById("textoMarcador");
-      const textoAR = document.getElementById("textoAR");
+    <a-marker type="pattern" id="marker-netflix" url="./targets/marcadornetflix.patt">
+      <a-entity id="model-netflix" gltf-model="#netflix" scale="0.5 0.5 0.5" visible="false" animation-mixer></a-entity>
+    </a-marker>
 
-      const nombres = ["META", "MCDONALS", "NETFLIX", "NIKE", "ALPHABET", "APPLE"];
-      const escena = document.querySelector("a-scene");
+    <a-marker type="pattern" id="marker-nike" url="./targets/marcadornike.patt">
+      <a-entity id="model-nike" gltf-model="#nike" scale="0.5 0.5 0.5" visible="false" animation-mixer></a-entity>
+    </a-marker>
 
-      escena.addEventListener("arReady", () => {
-        console.log("✅ AR listo, cámara iniciada correctamente.");
+    <a-marker type="pattern" id="marker-mcdonalds" url="./targets/marcadormcdonalds.patt">
+      <a-entity id="model-mcdonalds" gltf-model="#mcdonalds" scale="0.5 0.5 0.5" visible="false" animation-mixer></a-entity>
+    </a-marker>
+
+    <a-marker type="pattern" id="marker-apple" url="./targets/apple.patt">
+      <a-entity id="model-apple" gltf-model="#apple" scale="0.5 0.5 0.5" visible="false" animation-mixer></a-entity>
+    </a-marker>
+
+    <a-entity light="type: ambient; intensity: 0.8"></a-entity>
+    <a-entity light="type: directional; intensity: 0.8" position="1 2 1"></a-entity>
+  </a-scene>
+
+  <script>
+    const overlay = document.getElementById("overlay");
+    const question = document.getElementById("question");
+    const result = document.getElementById("result");
+    const btnYes = document.getElementById("btnYes");
+    const btnNo = document.getElementById("btnNo");
+    const brandInfo = document.getElementById("brandInfo");
+
+    const markers = [
+      { id: "marker-meta", name: "Meta" },
+      { id: "marker-alphabet", name: "Alphabet" },
+      { id: "marker-netflix", name: "Netflix" },
+      { id: "marker-nike", name: "Nike" },
+      { id: "marker-mcdonalds", name: "McDonald’s" },
+      { id: "marker-apple", name: "Apple" }
+    ];
+
+    let currentBrand = null;
+
+    markers.forEach(({ id, name }) => {
+      const marker = document.getElementById(id);
+      const model = document.getElementById("model-" + id.split("marker-")[1]);
+
+      marker.addEventListener("markerFound", () => {
+        console.log(`✅ Marcador detectado: ${name}`);
+        model.setAttribute("visible", true);
+        currentBrand = name;
+        brandInfo.textContent = `🔍 Empresa detectada: ${name}`;
+        brandInfo.style.display = "block";
+        question.textContent = `¿Quieres comprar ${name}?`;
+        result.textContent = "";
+        overlay.style.display = "block";
       });
 
-      // Registrar eventos para cada marcador individual
-      for (let i = 0; i < nombres.length; i++) {
-        const target = document.getElementById(`target${i}`);
-
-        if (!target) continue; // Evita errores si no hay ese marcador
-
-        target.addEventListener("targetFound", () => {
-          const nombre = nombres[i];
-          textoAR.setAttribute("value", `${nombre} DETECTADO`);
-          textoMarcador.setAttribute("visible", "true");
-          info.innerText = `Marcador detectado: ${nombre}`;
-          console.log(`🎯 Marcador detectado: ${nombre}`);
-        });
-
-        // BONUS: mantener visible el último marcador detectado
-        target.addEventListener("targetLost", () => {
-          info.innerText = `Último marcador detectado: ${nombres[i]}`;
-          textoMarcador.setAttribute("visible", "true"); // no se oculta
-          console.log(`ℹ️ Marcador perdido: ${nombres[i]} (texto sigue visible)`);
-        });
-      }
-
-      // Iniciar cámara automáticamente
-      window.addEventListener("load", async () => {
-        try {
-          await navigator.mediaDevices.getUserMedia({ video: true });
-          console.log("🎥 Permiso de cámara concedido");
-        } catch (err) {
-          console.error("❌ Error al acceder a la cámara:", err);
-          alert("No se pudo acceder a la cámara. Revisa los permisos del navegador.");
-        }
+      marker.addEventListener("markerLost", () => {
+        console.log(`❌ Marcador perdido: ${name}`);
+        model.setAttribute("visible", false);
+        brandInfo.style.display = "none";
+        overlay.style.display = "none";
       });
-    </script>
-  </body>
+    });
+
+    btnYes.addEventListener("click", () => {
+      result.textContent = "💸 Has hecho una compra impulsiva!";
+      setTimeout(() => { overlay.style.display = "none"; }, 2000);
+    });
+
+    btnNo.addEventListener("click", () => {
+      overlay.style.display = "none";
+    });
+  </script>
+</body>
 </html>
