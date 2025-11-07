@@ -199,7 +199,6 @@
     let halfway = 0;
     let animationPaused = false;
     let lostTimeout = null;
-    let needsReset = false;
     let smoothTarget = null;
 
     AFRAME.registerComponent("control-anim", {
@@ -221,7 +220,6 @@
       const model = document.getElementById("model-" + id.split("marker-")[1]);
 
       marker.addEventListener("markerFound", () => {
-        console.log(`✅ Marcador detectado: ${name}`);
         clearTimeout(lostTimeout);
         smoothTarget = null;
         model.setAttribute("visible", true);
@@ -254,7 +252,6 @@
                 animationPaused = true;
                 clock.stop();
                 clearInterval(checkHalf);
-                console.log(`⏸ Animación de ${name} pausada a la mitad`);
               }
             }, 100);
           }
@@ -262,11 +259,7 @@
       });
 
       marker.addEventListener("markerLost", () => {
-        console.log(`⚠ Marcador perdido: ${name}`);
-
-        // 🚫 No desaparece el modelo
         model.setAttribute("visible", true);
-
         if (currentModel === model) {
           animationPaused = true;
           clock.stop();
@@ -278,8 +271,6 @@
 
           lostTimeout = setTimeout(() => {
             if (currentModel === model) {
-              console.log(`⏹ Marcador ${name} no detectado por 4s → reinicio`);
-              needsReset = true;
               currentMixer = null;
               currentAction = null;
               clock.stop();
@@ -293,21 +284,41 @@
     });
 
     btnYes.addEventListener("click", () => {
-      if (currentMixer && currentAction) {
-        console.log("▶ Continuando animación hasta el final...");
-        animationPaused = false;
-        clock.start();
+        if (currentMixer && currentAction) {
+            console.log("▶ Continuando animación hasta el final...");
+            animationPaused = false;
+            clock.start();
 
-        const checkEnd = setInterval(() => {
-          if (currentAction.time >= currentAction.getClip().duration) {
-            clearInterval(checkEnd);
-            animationPaused = true;
-            clock.stop();
             result.textContent = "💸 Has hecho una compra impulsiva (-10 salud mental)";
-            setTimeout(() => overlay.style.display = "none", 2500);
-          }
-        }, 100);
-      }
+            result.style.color = "#ff3c3c";
+            result.style.textShadow = "0 0 10px #ff3c3c";
+            result.style.display = "block";
+
+            const checkEnd = setInterval(() => {
+            if (currentAction.time >= currentAction.getClip().duration) {
+                clearInterval(checkEnd);
+                animationPaused = true;
+                clock.stop();
+                setTimeout(() => {
+                overlay.style.display = "none";
+                result.textContent = "";
+                result.style.display = "none";
+                }, 2500);
+            }
+            }, 100);
+        } else {
+            // Si no hay animación, igual muestra el mensaje
+            result.textContent = "💸 Has hecho una compra impulsiva (-10 salud mental)";
+            result.style.color = "#ff3c3c";
+            result.style.textShadow = "0 0 10px #ff3c3c";
+            result.style.display = "block";
+
+            setTimeout(() => {
+            overlay.style.display = "none";
+            result.textContent = "";
+            result.style.display = "none";
+            }, 2500);
+        }
     });
 
     btnNo.addEventListener("click", () => {
