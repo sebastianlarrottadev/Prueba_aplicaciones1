@@ -135,8 +135,8 @@
            arjs="sourceType: webcam; debugUIEnabled: false;">
     <a-assets>
       <a-asset-item id="meta" src="./models/meta.glb"></a-asset-item>
-      <a-asset-item id="alphabet" src="./models/alphabet.glb"></a-asset-item>
-      <a-asset-item id="netflix" src="./models/netflix.glb"></a-asset-item>
+      <a-asset-item id="alphabet" src="./models/aalphabet.glb"></a-asset-item>
+      <a-asset-item id="netflix" src="./models/anetflix.glb"></a-asset-item>
       <a-asset-item id="nike" src="./models/nike.glb"></a-asset-item>
       <a-asset-item id="mcdonalds" src="./models/mcdonalds.glb"></a-asset-item>
       <a-asset-item id="apple" src="./models/cofremacrotado.glb"></a-asset-item>
@@ -145,11 +145,11 @@
     <a-entity camera></a-entity>
 
     <!-- MARCADORES -->
-    <a-marker type="pattern" id="marker-meta" url="./targets/marcadormeta.patt" emitevents="true">
+    <a-marker type="pattern" id="marker-meta" url="./targets/ruleta.patt" emitevents="true">
       <a-entity id="model-meta" gltf-model="#meta" scale="0.5 0.5 0.5" visible="true" animation-mixer></a-entity>
     </a-marker>
 
-    <a-marker type="pattern" id="marker-alphabet" url="./targets/aalphabet.patt" emitevents="true">
+    <a-marker type="pattern" id="marker-alphabet" url="./targets/alphabet.patt" emitevents="true">
       <a-entity id="model-alphabet" gltf-model="#alphabet" scale="0.5 0.5 0.5" visible="true" animation-mixer></a-entity>
     </a-marker>
 
